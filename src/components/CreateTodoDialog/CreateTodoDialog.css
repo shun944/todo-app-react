@@ -1,0 +1,46 @@
+.dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-content {
+  background-color: rgb(255, 255, 255);
+  padding: 20px;
+  width:40%;
+  border-radius: 10px;
+}
+
+.close-dialog {
+  display: block;
+  margin-left: auto;
+  margin-top: 20px;
+}
+
+.label-container label {
+  display: block;
+  border-bottom: 1px solid #000;
+  margin-bottom: 10px;
+}
+
+.label-container input {
+  display: block;
+  border-bottom: 1px solid #000;
+  margin-bottom: 10px;
+}
+
+.red {
+  color: red;
+}
+
+.invalid-form-content {
+  background-color: rgba(255, 0, 0, 0.3);
+}
+

@@ -1,0 +1,132 @@
+/* .todo-list {
+  border: 1px solid black;
+  padding: 10px;
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 80%;
+} */
+
+form {
+  display: flex;
+  justify-content: center;
+}
+
+.create-todo-button {
+  margin: auto;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+
+.todo-item-box {
+  display: flex;
+  flex-direction: column;
+  height: 100px;
+  width: 40%;
+  /* margin-left: 5%; */
+  margin: auto;
+  margin-bottom: 20px;
+  
+}
+
+.todo-item-box .todo-title-box {
+  border: 1px solid black;
+  flex: 1; /* flex-grow, flex-shrink, flex-basis */
+}
+
+.todo-item-box .todo-description-box {
+  border: 1px solid black;
+  flex: 8; /* flex-grow */
+  display: flex;
+}
+
+.todo-item-box .function-box {
+  border: 1px solid black;
+  flex: 1; /* flex-grow, flex-shrink, flex-basis */
+  display: flex;
+  
+}
+
+.todo-title,
+.todo-due-date {
+  font-size: 14px;
+  font-weight: bold;
+  margin-left: 10px;
+  text-align: left;
+  
+}
+
+.todo-description {
+  font-size: 12px;
+  margin-left: 10px;
+  flex: 7;
+}
+
+.todo-category {
+  flex: 3;
+  border-left: 1px solid black;
+  padding-left: 10px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.todo-title-box {
+  display: flex;
+  align-items: center;
+  position: relative;
+  justify-content: space-between;
+  border-right: 1px solid black;
+}
+
+.flash-message {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: skyblue;
+  color: red;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.completed-checkbox {
+  margin-left: auto;
+}
+
+.react-tabs__tab-list {
+  display: flex;
+  justify-content: space-around;
+  list-style: none;
+  padding: 0;
+}
+
+.react-tabs__tab {
+  padding: 10px 20px;
+  background: #ccc;
+  border: none;
+  cursor: pointer;
+}
+
+.react-tabs__tab--selected {
+  background: #666;
+  color: #fff;
+}
+
+.react-tabs__tab-panel {
+  padding: 20px;
+  background: #eee;
+}
+
+.react-tabs__tab-panel--selected {
+  display: block;
+}
