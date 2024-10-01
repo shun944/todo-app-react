@@ -1,7 +1,7 @@
 import React from "react";
 import useTodos from "../../hooks/useTodos";
 import { Link, To } from "react-router-dom";
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+//import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { useUserInfo } from "../../contexts/UserInfoContext";
 import "./Index.css";
 //models
@@ -12,6 +12,45 @@ import { UpdateTodoRequest } from "../../models/Todo";
 import CreateTodoDialog from "../../components/CreateTodoDialog/CreateTodoDialog";
 import SearchPanel from "../../components/searchPanel/searchPanel";
 import ShowTodo from "../../components/ShowTodo/ShowTodo";
+//from material-ui
+import Button from '@mui/material/Button';
+import { styled } from "@mui/material";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
+
+const StyledButton = styled(Button)({
+  marginBottom: '10px',
+});
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
+}
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function CustomTabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 export const Index = () => {
   const { todos, loading, error, addTodo, deleteTodo, updateTodo } = useTodos();
@@ -20,6 +59,7 @@ export const Index = () => {
   const [flashMessage, setFlashMessage] = React.useState<string | null>(null);
   const [isUpdate, setIsUpdate] = React.useState(false);
   const [existingTodo, setExistingTodo] = React.useState<Todo | null>(null);
+  const [tabValue, setTabValue] = React.useState(0);
   
   const handleDialogOpen = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +126,10 @@ export const Index = () => {
     }
   }
 
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  }
+
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -97,44 +141,41 @@ export const Index = () => {
   return (
     <div>
       {flashMessage && <div className="flash-message">{flashMessage}</div>}
-      <h1>Index page</h1>
       <h2>Welcome, {user?.name} !!</h2>
-      <li><Link to="/">Home</Link></li>
+      <div><Link to="/">Home</Link></div>
 
-      <Tabs>
-        <TabList>
-          <Tab>Recent Todo</Tab>
-          <Tab>Search Todo</Tab>
-        </TabList>
-      
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
+          <Tab label="Recent Todo" {...a11yProps(0)} sx={{ backgroundColor: tabValue === 0 ? 'lightgray' : 'transparent' }}/>
+          <Tab label="Search Todo" {...a11yProps(1)} sx={{ backgroundColor: tabValue === 1 ? 'lightgray' : 'transparent' }}/>
+        </Tabs>
+      </Box>
+      <CustomTabPanel value={tabValue} index={0}>
+        <form onSubmit={handleDialogOpen}>
+          <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
+        </form>
+        {dialogOpen && (
+          <div>
+            <CreateTodoDialog onClose={handleDialogClose} 
+              onCreate={handleCreateFromDialog} isUpdate={isUpdate}
+              existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
+              dialogOpen={dialogOpen}/>
+          </div>
+        )}
 
-        <TabPanel>
-          <form onSubmit={handleDialogOpen}>
-            <button type="submit" className="create-todo-button">Create Todo</button>
-          </form>
-          {dialogOpen && (
-            <div>
-              <CreateTodoDialog onClose={handleDialogClose} 
-                onCreate={handleCreateFromDialog} isUpdate={isUpdate}
-                existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
-                dialogOpen={dialogOpen}/>
-            </div>
-          )}
-
-          {todos.map((todo) => (
-              
-            <div key={todo.id} className="todo-item-box">
-              <ShowTodo targetTodo={todo} 
-              handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
-              handleOnDelete={handleOnDelete}
-              handleToggleCompleted={handleToggleCompleted} />
-            </div>
-          ))}
-        </TabPanel>
-        <TabPanel>
-          <SearchPanel />
-        </TabPanel>
-      </Tabs>
+        {todos.map((todo) => (
+            
+          <div key={todo.id} className="todo-item-box">
+            <ShowTodo targetTodo={todo} 
+            handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
+            handleOnDelete={handleOnDelete}
+            handleToggleCompleted={handleToggleCompleted} />
+          </div>
+        ))}
+      </CustomTabPanel>
+      <CustomTabPanel value={tabValue} index={1}>
+        <SearchPanel />
+      </CustomTabPanel>
     </div>
   );
 };
