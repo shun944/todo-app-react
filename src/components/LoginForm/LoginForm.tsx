@@ -4,6 +4,8 @@ import useAuthenticate from '../../hooks/useAuthenticate';
 import './LoginForm.css';
 import { useUserInfo } from '../../contexts/UserInfoContext';
 
+import { Button, Box } from '@mui/material';
+
 const LoginForm = () => {
   const [username, setUsername] = useState('user_with_hashpass');
   const [password, setPassword] = useState('');
@@ -69,20 +71,30 @@ const LoginForm = () => {
 
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Username:
-        <input type="text" value={username} onChange={handleUsernameChange} />
-      </label>
-      <label>
-        Password:
-        <input type="text" value={password} onChange={handlePasswordChange} />
-      </label>
-      <button type="submit">Login</button>
-      {errorMessages && errorMessages.map((message, index) => 
-        <p className="red" key={index}>{message}</p>)
-      }
-    </form>
+    <div>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>
+            Username:
+            <input type="text" value={username} onChange={handleUsernameChange} />
+          </label>
+          <label>
+            Password:
+            <input type="text" value={password} onChange={handlePasswordChange} />
+          </label>
+        </div>
+      </form>
+      <div>
+          {errorMessages && errorMessages.map((message, index) =>
+            <React.Fragment key={index}>
+              <p className="red">{message}</p>
+            </React.Fragment>
+          )}
+        </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+        <Button variant="contained" onClick={handleSubmit}>Login</Button>
+      </Box>
+    </div>
   );
 };
 
