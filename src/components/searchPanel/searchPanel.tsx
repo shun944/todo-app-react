@@ -2,23 +2,32 @@ import React from 'react';
 import './searchPanel.css';
 import useTodos from '../../hooks/useTodos';
 import { searchTodoRequest } from '../../models/Todo';
+import { Todo } from '../../models/Todo';
 
-const SearchPanel = () => {
+import Textarea from '@mui/joy/Textarea';
+import FormControl from '@mui/joy/FormControl';
+import Radio from '@mui/joy/Radio';
+import RadioGroup from '@mui/joy/RadioGroup';
+import Button from '@mui/material/Button';
+
+interface SearchPanelProps {
+  onSearch: (todos: Todo[]) => void;
+}
+
+const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch }) => {
   const [searchText, setSearchText] = React.useState('');
   const [textSearchType, setTextSearchType] = React.useState('title');
   const { todos, loading, error, searchTodo } = useTodos();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('searching...');
-    console.log(searchText);
-    console.log(textSearchType);
     const searchRequest = createSearchRequest(searchText, textSearchType);
-    searchTodo(searchRequest);
-    console.log('search result -> ',todos);
+    await searchTodo(searchRequest);
+    onSearch(todos);
+
   }
 
-  const handleTextChange = () => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTextChange = () => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setSearchText(e.target.value);
   }
 
@@ -30,18 +39,22 @@ const SearchPanel = () => {
     <div className="search-panel">
       <form onSubmit={handleSearch}>
         <div className="text-search-area">
-        <input type="text" placeholder="Search..." onChange={handleTextChange()}/>
           <div>
-            <input type="radio" id="titleSearch" name="textSearchType" 
-            value="title" onChange={handleSearchTypeChange()} defaultChecked />
-            <label htmlFor="titleSearch">Title</label>
-            <input type="radio" id="descriptionSearch" name="textSearchType"
-            value="description" onChange={handleSearchTypeChange()} />
-            <label htmlFor="descriptionSearch">Description</label>
+            <Textarea id="password" placeholder='Search...' onChange={handleTextChange()}/>
           </div>
+          <FormControl>
+            <RadioGroup component="div" defaultValue="title" name="radio-buttons-group"
+              orientation="horizontal"
+              sx={{ gap: 1 }}
+            >
+              <Radio value="title" label="Title" variant="outlined" onChange={handleSearchTypeChange} />
+              <Radio value="description" label="Description" variant="outlined" onChange={handleSearchTypeChange} />
+            </RadioGroup>
+          </FormControl>
         </div>
         <br />
-        <button className="search-submit" type="submit">Search</button>
+        {/* <button className="search-submit" type="submit">Search</button> */}
+        <Button type="submit" variant="contained">Search</Button>
       </form>
     </div>
   );

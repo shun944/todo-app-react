@@ -18,6 +18,7 @@ import { styled } from "@mui/material";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
+import Calendar from "../../components/Calendar/Calendar";
 
 const StyledButton = styled(Button)({
   marginBottom: '10px',
@@ -60,6 +61,7 @@ export const Index = () => {
   const [isUpdate, setIsUpdate] = React.useState(false);
   const [existingTodo, setExistingTodo] = React.useState<Todo | null>(null);
   const [tabValue, setTabValue] = React.useState(0);
+  const [searchTodos, setSearchTodos] = React.useState<Todo[]>([]);
   
   const handleDialogOpen = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +140,10 @@ export const Index = () => {
     return <p>Error: {error}</p>;
   }
 
+  const handleSearchResult = (todos: Todo[]) => {
+    setSearchTodos(todos);
+  }
+
   return (
     <div>
       {flashMessage && <div className="flash-message">{flashMessage}</div>}
@@ -164,7 +170,6 @@ export const Index = () => {
         )}
 
         {todos.map((todo) => (
-            
           <div key={todo.id} className="todo-item-box">
             <ShowTodo targetTodo={todo} 
             handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
@@ -174,7 +179,16 @@ export const Index = () => {
         ))}
       </CustomTabPanel>
       <CustomTabPanel value={tabValue} index={1}>
-        <SearchPanel />
+        <SearchPanel onSearch={handleSearchResult} />
+        <br />
+        {searchTodos.map((todo) => (
+          <div key={todo.id} className="todo-item-box">
+            <ShowTodo targetTodo={todo} 
+            handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
+            handleOnDelete={handleOnDelete}
+            handleToggleCompleted={handleToggleCompleted} />
+          </div>
+        ))}
       </CustomTabPanel>
     </div>
   );

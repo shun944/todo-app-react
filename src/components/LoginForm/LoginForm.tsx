@@ -5,6 +5,7 @@ import './LoginForm.css';
 import { useUserInfo } from '../../contexts/UserInfoContext';
 
 import { Button, Box } from '@mui/material';
+import Textarea from '@mui/joy/Textarea';
 
 const LoginForm = () => {
   const [username, setUsername] = useState('user_with_hashpass');
@@ -20,7 +21,6 @@ const LoginForm = () => {
 
 
   useEffect(() => {
-    //console.log(`User: ${user}, Error: ${error}`);
     if (user?.token) {
       setUser(user);
       navigate('/test');// ログイン成功時に/testに遷移
@@ -49,11 +49,10 @@ const LoginForm = () => {
 
     setLoginInfo({ username, password });
     setLoginAttempted(true);
-    console.log(`Username: ${username}, Password: ${password}`);
   };
 
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUsername(e.target.value);
 
     if (e.target.value) {
@@ -61,7 +60,7 @@ const LoginForm = () => {
     } 
   };
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPassword(e.target.value);
 
     if (e.target.value) {
@@ -74,14 +73,10 @@ const LoginForm = () => {
     <div>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>
-            Username:
-            <input type="text" value={username} onChange={handleUsernameChange} />
-          </label>
-          <label>
-            Password:
-            <input type="text" value={password} onChange={handlePasswordChange} />
-          </label>
+          <label htmlFor="username">Username:</label>
+          <Textarea id="username" value={username} onChange={handleUsernameChange}/>
+          <label htmlFor="password">Password:</label>
+          <Textarea id="password" value={password} onChange={handlePasswordChange}/>
         </div>
       </form>
       <div>
