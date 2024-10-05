@@ -18,6 +18,8 @@ import { styled } from "@mui/material";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
+import Grid from '@mui/material/Grid2';
+
 import Calendar from "../../components/Calendar/Calendar";
 
 const StyledButton = styled(Button)({
@@ -157,26 +159,44 @@ export const Index = () => {
         </Tabs>
       </Box>
       <CustomTabPanel value={tabValue} index={0}>
-        <form onSubmit={handleDialogOpen}>
-          <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
-        </form>
-        {dialogOpen && (
-          <div>
-            <CreateTodoDialog onClose={handleDialogClose} 
-              onCreate={handleCreateFromDialog} isUpdate={isUpdate}
-              existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
-              dialogOpen={dialogOpen}/>
-          </div>
-        )}
+        <Grid container spacing={2}>
+          <Grid size={12}>
+            <form onSubmit={handleDialogOpen}>
+              <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
+            </form>
+            {dialogOpen && (
+              <div>
+                <CreateTodoDialog onClose={handleDialogClose} 
+                  onCreate={handleCreateFromDialog} isUpdate={isUpdate}
+                  existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
+                  dialogOpen={dialogOpen}/>
+              </div>
+            )}
+            <Calendar todos={todos}/>
+          </Grid>
+          {/* <Grid size={0}>
+            <form onSubmit={handleDialogOpen}>
+              <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
+            </form>
+            {dialogOpen && (
+              <div>
+                <CreateTodoDialog onClose={handleDialogClose} 
+                  onCreate={handleCreateFromDialog} isUpdate={isUpdate}
+                  existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
+                  dialogOpen={dialogOpen}/>
+              </div>
+            )}
 
-        {todos.map((todo) => (
-          <div key={todo.id} className="todo-item-box">
-            <ShowTodo targetTodo={todo} 
-            handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
-            handleOnDelete={handleOnDelete}
-            handleToggleCompleted={handleToggleCompleted} />
-          </div>
-        ))}
+            {todos.map((todo) => (
+              <div key={todo.id} className="todo-item-box">
+                <ShowTodo targetTodo={todo} 
+                handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
+                handleOnDelete={handleOnDelete}
+                handleToggleCompleted={handleToggleCompleted} />
+              </div>
+            ))}
+          </Grid> */}
+        </Grid>
       </CustomTabPanel>
       <CustomTabPanel value={tabValue} index={1}>
         <SearchPanel onSearch={handleSearchResult} />

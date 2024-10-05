@@ -10,6 +10,9 @@ import { Button, Box } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { TextField } from '@mui/material';
+
+
 
 interface CreateTodoDialogProps {
   onClose: () => void;
@@ -23,15 +26,17 @@ interface CreateTodoDialogProps {
 interface TodoErrors {
   title: boolean;
   description: boolean;
+  start_date: boolean;
   due_date: boolean;
 }
 
 const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, isUpdate, existingTodo, onUpdate, dialogOpen }) => {
-  const [todo, setTodo] = useState<CreateTodoRequest>({title: '', description: '', due_date: '', user_id: 0});
+  const [todo, setTodo] = useState<CreateTodoRequest>({title: '', description: '', start_date: '', due_date: '', user_id: 0});
   const [updateTodo, setUpdateTodo] = useState<UpdateTodoRequest>({id: 0});
-  const [errors, setErrors] = useState<TodoErrors>({title: false, description: false, due_date: false});
+  const [errors, setErrors] = useState<TodoErrors>({title: false, description: false, start_date: false, due_date: false});
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [datePickerValue, setDatePickerValue] = useState<Dayjs | null>(dayjs().startOf('day'));
+  const [startDateValue, setStartDateValue] = useState<Dayjs | null>(null);
+  const [dueDateValue, setDueDateValue] = useState<Dayjs | null>(null);
 
   let currentDate = dayjs().startOf('day');
 
@@ -41,24 +46,45 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
         ...existingTodo,
       };
       setUpdateTodo(previousTodo);
-      setDatePickerValue(dayjs(previousTodo.due_date));
+      setStartDateValue(dayjs(previousTodo.start_date));
+      setDueDateValue(dayjs(previousTodo.due_date));
     }
     
   }, [isUpdate, existingTodo, dialogOpen]);
 
   useEffect(() => {
     if (isUpdate) {
-      setDatePickerValue(dayjs(updateTodo.due_date));
+      setStartDateValue(dayjs(updateTodo.start_date));
+      setDueDateValue(dayjs(updateTodo.due_date));
+      validationTodo(updateTodo);
     } 
     else {
-      setDatePickerValue(dayjs(todo.due_date));
-      if (!todo.due_date) {
-        setTodo({ ...todo, due_date: currentDate.format('YYYY-MM-DD') });
+      setStartDateValue(dayjs(todo.start_date));
+      setDueDateValue(dayjs(todo.due_date));
+      if (!todo.due_date && !todo.start_date) {
+        setTodo({ ...todo, 
+          start_date: currentDate.format('YYYY-MM-DD'),
+          due_date: currentDate.format('YYYY-MM-DD')
+        });
+        
       } else {
-        setTodo({ ...todo, due_date: todo.due_date });
+        setTodo({ ...todo, 
+          start_date: todo.start_date,
+          due_date: todo.due_date
+        });
       }
+      validationTodo(todo);
     }
-  }, [updateTodo.due_date, todo.due_date]);
+  }, [updateTodo.start_date, todo.start_date, updateTodo.due_date, todo.due_date]);
+
+  useEffect(() => {
+    validationTodo(todo);
+    if (isUpdate) {
+      validationTodo(updateTodo);
+    } else {
+      validationTodo(todo);
+    }
+  }, [updateTodo.title, todo.title, updateTodo.description, todo.description]);
   
   const handleCreate = () => {
     const isValidTodo = validationTodo(todo);
@@ -108,6 +134,23 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
     } 
   }
 
+  const handleStartDateChange = (date: Dayjs | null) => {
+    let targetDate: string;
+    targetDate = date ? date.format('YYYY-MM-DD') : '';
+    if (isUpdate) {
+      const tempTodo = {...updateTodo};
+      tempTodo.start_date = targetDate;
+      setUpdateTodo(tempTodo);
+    } else {
+      setTodo({ ...todo, start_date: targetDate });
+    }
+
+    if (targetDate) {
+      setErrors(prevErrors => ({...prevErrors, start_date: false}));
+      setErrorMessages(prevMessages => prevMessages.filter(message => message !== 'Start date is required'));
+    }
+  }
+
   const handleDueDateChange = (date: Dayjs | null) => {
     let targetDate: string;
     targetDate = date ? date.format('YYYY-MM-DD') : '';
@@ -126,7 +169,7 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
   }
 
   const validationTodo = (todo: CreateTodoRequest | UpdateTodoRequest): boolean => {
-    let newErrors = {title: false, description: false, due_date: false};
+    let newErrors = {title: false, description: false, start_date: false, due_date: false};
     let newErrorMessages: string[] = [];
     if (!todo.title) {
       newErrors = {...newErrors, title: true};
@@ -136,9 +179,18 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
       newErrors = {...newErrors, description: true};
       newErrorMessages = [...newErrorMessages, 'Description is required'];
     }
-    if(!todo.due_date){
+    if (!todo.start_date){
+      newErrors = {...newErrors, start_date: true};
+      newErrorMessages = [...newErrorMessages, 'Start date is required'];
+    }
+    if (!todo.due_date){
       newErrors = {...newErrors, due_date: true};
       newErrorMessages = [...newErrorMessages, 'Due date is required'];
+    }
+
+    if (dayjs(todo.start_date) > dayjs(todo.due_date)) {
+      newErrors = {...newErrors, start_date: true, due_date: true};
+      newErrorMessages = [...newErrorMessages, 'Start date must be before due date'];
     }
 
     setErrors(newErrors);
@@ -161,9 +213,17 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
         <Box mt={2}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
+              label="start_date"
+              value={startDateValue || currentDate}
+              onChange={handleStartDateChange}
+              format='YYYY-MM-DD'
+              sx={{ marginBottom: 2, color: 'red' }}
+              
+            />
+            <DatePicker
               label="due_date"
-              value={datePickerValue}
-              onChange={handleDueDateChange || currentDate}
+              value={dueDateValue}
+              onChange={handleDueDateChange}
               format='YYYY-MM-DD'
             />
           </LocalizationProvider>

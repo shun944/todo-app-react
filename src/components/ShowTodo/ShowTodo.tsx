@@ -12,7 +12,7 @@ interface ShowTodoProps {
 }
 
 const ShowTodo: React.FC<ShowTodoProps> = ({targetTodo, handleDialogOpenWithUpdate, handleOnDelete, handleToggleCompleted}) => {
-  const [todo, setTodo] = useState<Todo>({title: '', description: '', due_date: '', completed: false, user_id: 0});
+  const [todo, setTodo] = useState<Todo>({title: '', description: '', start_date: '', due_date: '', completed: false, user_id: 0});
 
   useEffect(() => {
     setTodo(targetTodo);

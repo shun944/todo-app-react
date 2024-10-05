@@ -2,6 +2,7 @@ export interface Todo {
   id?: number;
   title: string;
   description: string;
+  start_date: string;
   due_date: string;
   completed: boolean;
   category?: string;
@@ -15,6 +16,7 @@ export interface CreateTodoRequest {
   id?: number;
   title: string;
   description: string;
+  start_date: string;
   due_date: string;
   completed?: boolean;
   category?: string;
@@ -28,6 +30,7 @@ export interface UpdateTodoRequest {
   id?: number;
   title?: string;
   description?: string;
+  start_date?: string;
   due_date?: string;
   completed?: boolean;
   category?: string;
@@ -40,6 +43,7 @@ export interface UpdateTodoRequest {
 export interface searchTodoRequest {
   title?: string;
   description?: string;
+  start_date?: string;
   due_date?: string;
   completed?: boolean;
   category?: string;
