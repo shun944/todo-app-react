@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import useTodos from "../../hooks/useTodos";
 import { Link, To } from "react-router-dom";
 //import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
@@ -26,6 +26,7 @@ const StyledButton = styled(Button)({
   marginBottom: '10px',
 });
 
+//a11y: accessibility, for adding aria-controls attribute to the tab panel
 function a11yProps(index: number) {
   return {
     id: `simple-tab-${index}`,
@@ -56,7 +57,7 @@ function CustomTabPanel(props: TabPanelProps) {
 }
 
 export const Index = () => {
-  const { todos, loading, error, addTodo, deleteTodo, updateTodo } = useTodos();
+  const { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodoForCalendar } = useTodos();
   const { user } = useUserInfo();
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [flashMessage, setFlashMessage] = React.useState<string | null>(null);
@@ -64,6 +65,11 @@ export const Index = () => {
   const [existingTodo, setExistingTodo] = React.useState<Todo | null>(null);
   const [tabValue, setTabValue] = React.useState(0);
   const [searchTodos, setSearchTodos] = React.useState<Todo[]>([]);
+  const [calendarTodos, setCalendarTodos] = React.useState<Todo[]>([]);
+
+  useEffect(() => {
+    setCalendarTodos(todos);
+  }, [todos]);
   
   const handleDialogOpen = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +80,6 @@ export const Index = () => {
   }
 
   const handleDialogOpenWithUpdate = async (todo: Todo) => {
-    console.log('testtest',todo);
     setIsUpdate(true);
     setExistingTodo(todo);
     setDialogOpen(true);
@@ -130,6 +135,10 @@ export const Index = () => {
     }
   }
 
+  const handleSelectedMonthChange = (date: string) => {
+    searchTodoForCalendar(date);
+  }
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   }
@@ -172,7 +181,7 @@ export const Index = () => {
                   dialogOpen={dialogOpen}/>
               </div>
             )}
-            <Calendar todos={todos}/>
+            <Calendar todos={calendarTodos} onSelectedMonthChange={handleSelectedMonthChange}/>
           </Grid>
           {/* <Grid size={0}>
             <form onSubmit={handleDialogOpen}>

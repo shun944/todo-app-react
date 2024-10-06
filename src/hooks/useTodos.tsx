@@ -15,7 +15,8 @@ const useTodos = () => {
     // get todos
     const fetchPosts = async () => {
       try {
-        const response = await apiClient.get<Todo[]>(`/todos?user_id=${user?.id}`);
+        const indexQuery = createIndexQuery(user?.id || 0);
+        const response = await apiClient.get<Todo[]>(indexQuery);
         console.log(response.data);
         setTodos(response.data);
       } catch (err: any) {
@@ -70,8 +71,19 @@ const useTodos = () => {
       setError(err.message);
     }
   }
+  //search todo for calendar
+  const searchTodoForCalendar = async (selectedDate: string) => {
+    try {
+      const { formattedFirstDayOfLastMonth, formattedLastDayOfNextMonth } = getBoundingDates(selectedDate);
+      const searchQuery = `/todos?user_id=${user?.id}&start_date[after]=${formattedFirstDayOfLastMonth}&due_date[before]=${formattedLastDayOfNextMonth}`;
+      const response = await apiClient.get<Todo[]>(searchQuery);
+      setTodos(response.data);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }
 
-  return { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodo };
+  return { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodo, searchTodoForCalendar };
 }
 
 // like private method
@@ -85,6 +97,30 @@ const createSearchQuery = (user_id: number, searchParams: searchTodoRequest) : s
     }
   }
   return searchQuery;
+}
+
+const createIndexQuery = (user_id: number) : string => {
+  let indexQuery = `/todos?user_id=${user_id}`;
+  const currentDate = new Date();
+  const { formattedFirstDayOfLastMonth, formattedLastDayOfNextMonth } = getBoundingDates(currentDate);
+  indexQuery += `&start_date[after]=${formattedFirstDayOfLastMonth}&due_date[before]=${formattedLastDayOfNextMonth}`;
+  return indexQuery;
+}
+
+//return first day of last month and last day of next month
+const getBoundingDates = (date: Date | string) => {
+  if (typeof date === 'string') {
+    date = new Date(date);
+  }
+  const firstDayOfLastMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+  const lastDayOfNextMonth = new Date(date.getFullYear(), date.getMonth() + 2, 0);
+  const formattedFirstDayOfLastMonth = formatDate(firstDayOfLastMonth);
+  const formattedLastDayOfNextMonth = formatDate(lastDayOfNextMonth);
+  return { formattedFirstDayOfLastMonth, formattedLastDayOfNextMonth };
+}
+
+const formatDate = (date: Date) => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 

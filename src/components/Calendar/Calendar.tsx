@@ -1,26 +1,26 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import FullCalendarApi from "@fullcalendar/react"
 import { Todo } from "../../models/Todo";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
 
 import { Popover, Typography } from '@mui/material';
 import ShowTodo from "../ShowTodo/ShowTodo";
 
+
 interface CalendarProps {
   todos: Todo[];
+  onSelectedMonthChange: (date: string) => void;
 }
 
-const Calendar: React.FC<CalendarProps> = ({todos}) => {
-  // const events = [
-  //   { title: "Event 1", date: "2024-10-01" },
-  //   { title: "Event 2", start: "2024-10-02", end: "2022-01-03" },
-  //   // Add more events as needed
-  // ];
+const Calendar: React.FC<CalendarProps> = ({todos, onSelectedMonthChange}) => {
   const [calendarEvents, setCalendarEvents] = useState([{}]);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [popoverContent, setPopoverContent] = useState<string>('');
   const [selectedTodo, setSelectedTodo] = useState<Todo>({title: '', description: '', start_date: '', due_date: '', completed: false, user_id: 0});
+
+  const calendarRef = useRef<FullCalendarApi | null>(null);
 
   useEffect(() => {
     const newEvents = todos.map((todo) => {
@@ -32,7 +32,6 @@ const Calendar: React.FC<CalendarProps> = ({todos}) => {
       };
     });
     setCalendarEvents(newEvents);
-    console.log(newEvents);
   }, [todos]);
 
   const handleEventClick = (clickInfo: any) => {
@@ -51,6 +50,14 @@ const Calendar: React.FC<CalendarProps> = ({todos}) => {
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
 
+  const getSelectedMonth = () => {
+    if (calendarRef.current) {
+      const currentStart = calendarRef.current?.getApi().view.currentStart;
+      const selectedDate = currentStart ? `${currentStart.getFullYear()}-${currentStart.getMonth() + 1}-01` : '';
+      onSelectedMonthChange(selectedDate);
+    }
+  }
+
   return (
     <>
       <FullCalendar
@@ -58,6 +65,8 @@ const Calendar: React.FC<CalendarProps> = ({todos}) => {
         initialView="dayGridMonth"
         events={calendarEvents}
         eventClick={handleEventClick}
+        ref={calendarRef}
+        datesSet={getSelectedMonth}
       />
       <Popover
         id={id}
