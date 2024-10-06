@@ -7,6 +7,8 @@ import dayjs from "dayjs";
 
 import { Popover, Typography } from '@mui/material';
 import ShowTodo from "../ShowTodo/ShowTodo";
+//import makeStyles from '@mui/styles/makeStyles';
+import { styled } from '@mui/material/styles';
 
 
 interface CalendarProps {
@@ -21,6 +23,11 @@ const Calendar: React.FC<CalendarProps> = ({todos, onSelectedMonthChange}) => {
   const [selectedTodo, setSelectedTodo] = useState<Todo>({title: '', description: '', start_date: '', due_date: '', completed: false, user_id: 0});
 
   const calendarRef = useRef<FullCalendarApi | null>(null);
+
+  const StyledDiv = styled('div')({
+    width: '100%',  // 幅を指定
+    height: '100%', // 高さを指定
+  });
 
   useEffect(() => {
     const newEvents = todos.map((todo) => {
@@ -82,11 +89,13 @@ const Calendar: React.FC<CalendarProps> = ({todos, onSelectedMonthChange}) => {
           horizontal: 'center',
         }}
       >
+        <StyledDiv>
         <ShowTodo targetTodo={selectedTodo}
           handleDialogOpenWithUpdate={() => {}}
           handleOnDelete={() => {}}
           handleToggleCompleted={() => {}}
         />
+        </StyledDiv>
       </Popover>
     </>
   );
