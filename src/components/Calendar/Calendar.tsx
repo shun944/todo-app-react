@@ -2,12 +2,19 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import FullCalendarApi from "@fullcalendar/react"
 import { Todo } from "../../models/Todo";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
+import { useRecoilValue } from "recoil";
+import { 
+  updatedFromDialogAtom,
+  deletedFromCardAtom,
+  checkedFromCardAtom
+ } from "../../atom";
+//context
+import TodoContext from "../../contexts/TodoContext";
 
 import { Popover, Typography } from '@mui/material';
 import ShowTodo from "../ShowTodo/ShowTodo";
-//import makeStyles from '@mui/styles/makeStyles';
 import { styled } from '@mui/material/styles';
 
 
@@ -19,14 +26,20 @@ interface CalendarProps {
 const Calendar: React.FC<CalendarProps> = ({todos, onSelectedMonthChange}) => {
   const [calendarEvents, setCalendarEvents] = useState([{}]);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const [popoverContent, setPopoverContent] = useState<string>('');
   const [selectedTodo, setSelectedTodo] = useState<Todo>({title: '', description: '', start_date: '', due_date: '', completed: false, user_id: 0});
+  const [tempPopoverStop, setTempPopoverStop] = useState(false);
+  const [tempAncohrEl, setTempAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   const calendarRef = useRef<FullCalendarApi | null>(null);
+  const { dialogOpen } = useContext(TodoContext);
+
+  const updatedFromDialog = useRecoilValue(updatedFromDialogAtom);
+  const deletedFromCard = useRecoilValue(deletedFromCardAtom);
+  const checkedFromCard = useRecoilValue(checkedFromCardAtom);
 
   const StyledDiv = styled('div')({
-    width: '100%',  // 幅を指定
-    height: '100%', // 高さを指定
+    width: '100%',
+    height: '100%',
   });
 
   useEffect(() => {
@@ -41,13 +54,26 @@ const Calendar: React.FC<CalendarProps> = ({todos, onSelectedMonthChange}) => {
     setCalendarEvents(newEvents);
   }, [todos]);
 
+  useEffect(() => {
+    if (dialogOpen && anchorEl) {
+      setTempAnchorEl(anchorEl);
+      setAnchorEl(null);
+      setTempPopoverStop(true);
+    } else if(!dialogOpen && tempPopoverStop) {
+      setAnchorEl(tempAncohrEl);
+      setTempPopoverStop(false);
+    }
+  }, [dialogOpen]);
+
+  useEffect(() => {
+    if (updatedFromDialog || deletedFromCard || checkedFromCard) {
+      handleClose();
+    }
+  }, [updatedFromDialog, deletedFromCard, checkedFromCard]);
+
   const handleEventClick = (clickInfo: any) => {
-    console.log(todos);
-    console.log('info:', clickInfo.event.extendedProps.todo);
-    //setAnchorEl(clickInfo.jsEvent.currentTarget);
     setSelectedTodo(clickInfo.event.extendedProps.todo);
     setAnchorEl(clickInfo.el);
-    setPopoverContent(`Event title: ${clickInfo.event.title}`);
   };
 
   const handleClose = () => {
@@ -90,11 +116,7 @@ const Calendar: React.FC<CalendarProps> = ({todos, onSelectedMonthChange}) => {
         }}
       >
         <StyledDiv>
-        <ShowTodo targetTodo={selectedTodo}
-          handleDialogOpenWithUpdate={() => {}}
-          handleOnDelete={() => {}}
-          handleToggleCompleted={() => {}}
-        />
+        <ShowTodo targetTodo={selectedTodo} />
         </StyledDiv>
       </Popover>
     </>

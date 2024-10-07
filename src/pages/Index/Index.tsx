@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import useTodos from "../../hooks/useTodos";
 import { Link, To } from "react-router-dom";
-//import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { useUserInfo } from "../../contexts/UserInfoContext";
 import "./Index.css";
+import Calendar from "../../components/Calendar/Calendar";
 //models
 import { Todo } from "../../models/Todo";
 import { CreateTodoRequest } from "../../models/Todo";
@@ -12,6 +12,8 @@ import { UpdateTodoRequest } from "../../models/Todo";
 import CreateTodoDialog from "../../components/CreateTodoDialog/CreateTodoDialog";
 import SearchPanel from "../../components/searchPanel/searchPanel";
 import ShowTodo from "../../components/ShowTodo/ShowTodo";
+//context
+import TodoContext from "../../contexts/TodoContext";
 //from material-ui
 import Button from '@mui/material/Button';
 import { styled } from "@mui/material";
@@ -19,8 +21,6 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import Grid from '@mui/material/Grid2';
-
-import Calendar from "../../components/Calendar/Calendar";
 
 const StyledButton = styled(Button)({
   marginBottom: '10px',
@@ -156,69 +156,73 @@ export const Index = () => {
   }
 
   return (
-    <div>
-      {flashMessage && <div className="flash-message">{flashMessage}</div>}
-      <h2>Welcome, {user?.name} !!</h2>
-      <div><Link to="/">Home</Link></div>
+    <TodoContext.Provider value={{
+      isUpdate, setIsUpdate, existingTodo, setExistingTodo,
+      dialogOpen, setDialogOpen, handleDialogOpenWithUpdate,
+      handleOnDelete, handleToggleCompleted,
+    }}>
+      <div>
+        {flashMessage && <div className="flash-message">{flashMessage}</div>}
+        <h2>Welcome, {user?.name} !!</h2>
+        <div><Link to="/">Home</Link></div>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
-          <Tab label="Recent Todo" {...a11yProps(0)} sx={{ backgroundColor: tabValue === 0 ? 'lightgray' : 'transparent' }}/>
-          <Tab label="Search Todo" {...a11yProps(1)} sx={{ backgroundColor: tabValue === 1 ? 'lightgray' : 'transparent' }}/>
-        </Tabs>
-      </Box>
-      <CustomTabPanel value={tabValue} index={0}>
-        <Grid container spacing={2}>
-          <Grid size={12}>
-            <form onSubmit={handleDialogOpen}>
-              <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
-            </form>
-            {dialogOpen && (
-              <div>
-                <CreateTodoDialog onClose={handleDialogClose} 
-                  onCreate={handleCreateFromDialog} isUpdate={isUpdate}
-                  existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
-                  dialogOpen={dialogOpen}/>
-              </div>
-            )}
-            <Calendar todos={calendarTodos} onSelectedMonthChange={handleSelectedMonthChange}/>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
+            <Tab label="Recent Todo" {...a11yProps(0)} sx={{ backgroundColor: tabValue === 0 ? 'lightgray' : 'transparent' }}/>
+            <Tab label="Search Todo" {...a11yProps(1)} sx={{ backgroundColor: tabValue === 1 ? 'lightgray' : 'transparent' }}/>
+          </Tabs>
+        </Box>
+        <CustomTabPanel value={tabValue} index={0}>
+          <Grid container spacing={2}>
+            <Grid size={5}>
+              <form onSubmit={handleDialogOpen}>
+                <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
+              </form>
+              {dialogOpen && (
+                <div>
+                  <CreateTodoDialog onClose={handleDialogClose} 
+                    onCreate={handleCreateFromDialog} isUpdate={isUpdate}
+                    existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
+                    dialogOpen={dialogOpen}/>
+                </div>
+              )}
+              <Calendar todos={calendarTodos} onSelectedMonthChange={handleSelectedMonthChange}/>
+            </Grid>
+            <Grid size={7}>
+              <form onSubmit={handleDialogOpen}>
+                <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
+              </form>
+              {dialogOpen && (
+                <div>
+                  <CreateTodoDialog onClose={handleDialogClose} 
+                    onCreate={handleCreateFromDialog} isUpdate={isUpdate}
+                    existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
+                    dialogOpen={dialogOpen}/>
+                </div>
+              )}
+
+              {todos.map((todo) => (
+                <div key={todo.id} className="todo-item-box">
+                  <ShowTodo targetTodo={todo} 
+                  handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
+                  handleOnDelete={handleOnDelete}
+                  handleToggleCompleted={handleToggleCompleted} />
+                </div>
+              ))}
+            </Grid>
           </Grid>
-          {/* <Grid size={0}>
-            <form onSubmit={handleDialogOpen}>
-              <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
-            </form>
-            {dialogOpen && (
-              <div>
-                <CreateTodoDialog onClose={handleDialogClose} 
-                  onCreate={handleCreateFromDialog} isUpdate={isUpdate}
-                  existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
-                  dialogOpen={dialogOpen}/>
-              </div>
-            )}
-
-            {todos.map((todo) => (
-              <div key={todo.id} className="todo-item-box">
-                <ShowTodo targetTodo={todo} 
-                handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
-                handleOnDelete={handleOnDelete}
-                handleToggleCompleted={handleToggleCompleted} />
-              </div>
-            ))}
-          </Grid> */}
-        </Grid>
-      </CustomTabPanel>
-      <CustomTabPanel value={tabValue} index={1}>
-        <SearchPanel onSearch={handleSearchResult} />
-        <br />
-        {searchTodos.map((todo) => (
-          <div key={todo.id} className="todo-item-box">
-            <ShowTodo targetTodo={todo} 
-            handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
-            handleOnDelete={handleOnDelete}
-            handleToggleCompleted={handleToggleCompleted} />
-          </div>
-        ))}
-      </CustomTabPanel>
-    </div>
+        </CustomTabPanel>
+        <CustomTabPanel value={tabValue} index={1}>
+          <SearchPanel onSearch={handleSearchResult} />
+          <br />
+          {searchTodos.map((todo) => (
+            <div key={todo.id} className="todo-item-box">
+              <ShowTodo targetTodo={todo} 
+              handleToggleCompleted={handleToggleCompleted} />
+            </div>
+          ))}
+        </CustomTabPanel>
+      </div>
+    </TodoContext.Provider>
   );
 };

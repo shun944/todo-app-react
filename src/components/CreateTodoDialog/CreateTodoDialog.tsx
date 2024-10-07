@@ -4,13 +4,14 @@ import { CreateTodoRequest } from '../../models/Todo';
 import { UpdateTodoRequest } from '../../models/Todo';
 import { Todo } from '../../models/Todo';
 import dayjs, { Dayjs } from 'dayjs';
+import { useRecoilState } from 'recoil';
+import { updatedFromDialogAtom } from '../../atom';
 
 import Textarea from '@mui/joy/Textarea';
 import { Button, Box } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TextField } from '@mui/material';
 
 
 
@@ -37,8 +38,16 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [startDateValue, setStartDateValue] = useState<Dayjs | null>(null);
   const [dueDateValue, setDueDateValue] = useState<Dayjs | null>(null);
+  const [enableValidation, setEnableValidation] = useState(false);
+  const [updatedFromDialog, setUpdatedFromDialog] = useRecoilState(updatedFromDialogAtom);
 
   let currentDate = dayjs().startOf('day');
+
+  useEffect(() => {
+    if (updatedFromDialog) {
+      setUpdatedFromDialog(false);
+    }
+  });
 
   useEffect(() => {
     if(isUpdate && existingTodo) {
@@ -87,6 +96,7 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
   }, [updateTodo.title, todo.title, updateTodo.description, todo.description]);
   
   const handleCreate = () => {
+    setEnableValidation(true);
     const isValidTodo = validationTodo(todo);
     if (!isValidTodo) {
       return;
@@ -96,11 +106,13 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
   };
 
   const handleUpdate = () => {
+    setEnableValidation(true);
     const isValidTodo = validationTodo(updateTodo);
     if (!isValidTodo) {
       return;
     }
     onUpdate(updateTodo);
+    setUpdatedFromDialog(true);
     onClose();
   }
 
@@ -169,6 +181,9 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
   }
 
   const validationTodo = (todo: CreateTodoRequest | UpdateTodoRequest): boolean => {
+    if (!enableValidation) {
+      return true;
+    }
     let newErrors = {title: false, description: false, start_date: false, due_date: false};
     let newErrorMessages: string[] = [];
     if (!todo.title) {
@@ -195,6 +210,7 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
 
     setErrors(newErrors);
     setErrorMessages(newErrorMessages);
+    setEnableValidation(false);
 
     return !newErrorMessages.length;
   }
@@ -232,7 +248,7 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
           <Box mt={2}>
             {
               isUpdate  
-              ? <Button variant="contained" onClick={handleUpdate} >Update</Button>
+              ? <Button variant="contained" onClick={handleUpdate}>Update</Button>
               : <Button variant="contained" onClick={handleCreate}>Create</Button>
             }
           </Box>
