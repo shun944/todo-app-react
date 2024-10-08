@@ -5,7 +5,7 @@ import { UpdateTodoRequest } from '../../models/Todo';
 import { Todo } from '../../models/Todo';
 import dayjs, { Dayjs } from 'dayjs';
 import { useRecoilState } from 'recoil';
-import { updatedFromDialogAtom } from '../../atom';
+import { updatedFromDialogAtom, createdFromDialogAtom } from '../../atom';
 
 import Textarea from '@mui/joy/Textarea';
 import { Button, Box } from '@mui/material';
@@ -40,12 +40,16 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
   const [dueDateValue, setDueDateValue] = useState<Dayjs | null>(null);
   const [enableValidation, setEnableValidation] = useState(false);
   const [updatedFromDialog, setUpdatedFromDialog] = useRecoilState(updatedFromDialogAtom);
+  const [createdFromDialog, setCreatedFromDialog] = useRecoilState(createdFromDialogAtom);
 
   let currentDate = dayjs().startOf('day');
 
   useEffect(() => {
     if (updatedFromDialog) {
       setUpdatedFromDialog(false);
+    }
+    if (createdFromDialog) {
+      setCreatedFromDialog(false);
     }
   });
 
@@ -102,6 +106,7 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
       return;
     }
     onCreate(todo);
+    setCreatedFromDialog(true);
     onClose();
   };
 

@@ -14,3 +14,8 @@ export const checkedFromCardAtom = atom({
   key: 'checkedFromCardAtom',
   default: false,
 })
+
+export const createdFromDialogAtom = atom({
+  key: 'createdFromDialogAtom',
+  default: false,
+})

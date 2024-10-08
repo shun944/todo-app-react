@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import useTodos from "../../hooks/useTodos";
 import { Link, To } from "react-router-dom";
 import { useUserInfo } from "../../contexts/UserInfoContext";
+import { useRecoilState } from "recoil";
 import "./Index.css";
 import Calendar from "../../components/Calendar/Calendar";
 //models
@@ -14,6 +15,12 @@ import SearchPanel from "../../components/searchPanel/searchPanel";
 import ShowTodo from "../../components/ShowTodo/ShowTodo";
 //context
 import TodoContext from "../../contexts/TodoContext";
+//recoils
+import { 
+  updatedFromDialogAtom, 
+  createdFromDialogAtom,
+  checkedFromCardAtom
+ } from "../../atom";
 //from material-ui
 import Button from '@mui/material/Button';
 import { styled } from "@mui/material";
@@ -21,6 +28,10 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import Grid from '@mui/material/Grid2';
+import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
+import SnackbarContent from '@mui/material/SnackbarContent';
+
+
 
 const StyledButton = styled(Button)({
   marginBottom: '10px',
@@ -61,15 +72,35 @@ export const Index = () => {
   const { user } = useUserInfo();
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [flashMessage, setFlashMessage] = React.useState<string | null>(null);
+  const [openFlash, setOpenFlash] = React.useState(false);
   const [isUpdate, setIsUpdate] = React.useState(false);
   const [existingTodo, setExistingTodo] = React.useState<Todo | null>(null);
   const [tabValue, setTabValue] = React.useState(0);
   const [searchTodos, setSearchTodos] = React.useState<Todo[]>([]);
   const [calendarTodos, setCalendarTodos] = React.useState<Todo[]>([]);
 
+  const updatedFromDialog = useRecoilState(updatedFromDialogAtom)[0];
+  const createdFromDialog = useRecoilState(createdFromDialogAtom)[0];
+  const checkedFromCard = useRecoilState(checkedFromCardAtom)[0];
+
   useEffect(() => {
     setCalendarTodos(todos);
   }, [todos]);
+
+  useEffect(() => {
+    if (updatedFromDialog) {
+      setOpenFlash(true);
+      setFlashMessage('Todo updated successfully');
+    }
+    if (createdFromDialog) {
+      setOpenFlash(true);
+      setFlashMessage('Todo created successfully');
+    }
+    if (checkedFromCard) {
+      setOpenFlash(true);
+      setFlashMessage('Checked completed successfully');
+    }
+  }, [updatedFromDialog, createdFromDialog, checkedFromCard]);
   
   const handleDialogOpen = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,9 +141,8 @@ export const Index = () => {
 
     deleteTodo(todo_id)
       .then(() => {
+        setOpenFlash(true);
         setFlashMessage('Todo deleted successfully');
-        setTimeout(() => setFlashMessage(null), 3000);
-        console.log(user?.id);
       })
       .catch((err) => console.error(err));
   }
@@ -120,6 +150,17 @@ export const Index = () => {
   const handleDialogClose = () => {
     setDialogOpen(false);
   }
+
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: SnackbarCloseReason,
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpenFlash(false);
+  };
 
   const handleToggleCompleted = (todo: Todo) => {
     if (typeof todo.id === 'number') {
@@ -162,7 +203,18 @@ export const Index = () => {
       handleOnDelete, handleToggleCompleted,
     }}>
       <div>
-        {flashMessage && <div className="flash-message">{flashMessage}</div>}
+        <Snackbar
+          open={openFlash}
+          autoHideDuration={3000}
+          onClose={handleClose}
+          message={flashMessage}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <SnackbarContent
+            message={flashMessage}
+            style={{ backgroundColor: 'green', justifyContent: 'center' }}
+          />
+        </Snackbar>
         <h2>Welcome, {user?.name} !!</h2>
         <div><Link to="/">Home</Link></div>
 
