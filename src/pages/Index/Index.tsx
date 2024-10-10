@@ -20,7 +20,7 @@ import {
   updatedFromDialogAtom, 
   createdFromDialogAtom,
   checkedFromCardAtom
- } from "../../atom";
+} from "../../atom";
 //from material-ui
 import Button from '@mui/material/Button';
 import { styled } from "@mui/material";
@@ -120,7 +120,6 @@ export const Index = () => {
     if (user) {
       //set user_id for current user
       todoRequest.user_id = user.id;
-      todoRequest.category_master_id = 1; // TODO: category_master_idを選択できるようにする
       addTodo(todoRequest);
     } else {
       console.log("User not found");
@@ -129,7 +128,6 @@ export const Index = () => {
 
   const handleUpdateFromDialog = async (todoRequest: UpdateTodoRequest) => {
     //update
-    todoRequest.category_master_id = 1; // TODO: category_master_idを選択できるようにする
     updateTodo(todoRequest);
   }
 

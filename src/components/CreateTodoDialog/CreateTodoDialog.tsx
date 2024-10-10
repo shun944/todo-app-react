@@ -6,12 +6,17 @@ import { Todo } from '../../models/Todo';
 import dayjs, { Dayjs } from 'dayjs';
 import { useRecoilState } from 'recoil';
 import { updatedFromDialogAtom, createdFromDialogAtom } from '../../atom';
+import useCategories from '../../hooks/useCategories';
 
 import Textarea from '@mui/joy/Textarea';
 import { Button, Box } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';     
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 
 
 
@@ -31,6 +36,11 @@ interface TodoErrors {
   due_date: boolean;
 }
 
+interface Category {
+  id: number;
+  name: string;
+}
+
 const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, isUpdate, existingTodo, onUpdate, dialogOpen }) => {
   const [todo, setTodo] = useState<CreateTodoRequest>({title: '', description: '', start_date: '', due_date: '', user_id: 0});
   const [updateTodo, setUpdateTodo] = useState<UpdateTodoRequest>({id: 0});
@@ -39,10 +49,23 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
   const [startDateValue, setStartDateValue] = useState<Dayjs | null>(null);
   const [dueDateValue, setDueDateValue] = useState<Dayjs | null>(null);
   const [enableValidation, setEnableValidation] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [updatedFromDialog, setUpdatedFromDialog] = useRecoilState(updatedFromDialogAtom);
   const [createdFromDialog, setCreatedFromDialog] = useRecoilState(createdFromDialogAtom);
 
+  const { categories } = useCategories();
+  const [categoryOptions, setCategoryOptions] = useState<Category[]>([]);
+
   let currentDate = dayjs().startOf('day');
+
+  useEffect(() => {
+    if (categories && categoryOptions.length === 0) {
+      categories.map((category) => {
+        setCategoryOptions(prevOptions => [...prevOptions, {id: category.id, name: category.category_name}]);
+      })
+    }
+    console.log('categoryOptions', categoryOptions);
+  }, [categories]);
 
   useEffect(() => {
     if (updatedFromDialog) {
@@ -61,6 +84,7 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
       setUpdateTodo(previousTodo);
       setStartDateValue(dayjs(previousTodo.start_date));
       setDueDateValue(dayjs(previousTodo.due_date));
+      setSelectedCategory(previousTodo.category_master_id?.toString() || '');
     }
     
   }, [isUpdate, existingTodo, dialogOpen]);
@@ -185,6 +209,17 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
     } 
   }
 
+  const handleSelectChange = (e: SelectChangeEvent) => {
+    setSelectedCategory(e.target.value);
+    if (isUpdate) {
+      const tempTodo = {...updateTodo};
+      tempTodo.category_master_id = Number(e.target.value);
+      setUpdateTodo(tempTodo);
+    } else {
+      setTodo({ ...todo, category_master_id: Number(e.target.value) });
+    }
+  }
+
   const validationTodo = (todo: CreateTodoRequest | UpdateTodoRequest): boolean => {
     if (!enableValidation) {
       return true;
@@ -249,6 +284,23 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
             />
           </LocalizationProvider>
         </Box>
+        <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+          <InputLabel id="demo-select-small-label">Category</InputLabel>
+          <Select
+            labelId="demo-select-small-label"
+            id="demo-select-small"
+            value={selectedCategory}
+            label="Age"
+            onChange={handleSelectChange}
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            {categoryOptions.map((category) => (
+              <MenuItem key={category.id} value={category.id.toString()}>{category.name}</MenuItem>
+            ))}
+          </Select>
+      </FormControl>
         <div>
           <Box mt={2}>
             {

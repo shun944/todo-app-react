@@ -2,6 +2,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import FullCalendarApi from "@fullcalendar/react"
 import { Todo } from "../../models/Todo";
+import "./Calendar.css";
 import { useContext, useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
 import { useRecoilValue } from "recoil";
@@ -9,7 +10,7 @@ import {
   updatedFromDialogAtom,
   deletedFromCardAtom,
   checkedFromCardAtom
- } from "../../atom";
+} from "../../atom";
 //context
 import TodoContext from "../../contexts/TodoContext";
 
@@ -44,11 +45,13 @@ const Calendar: React.FC<CalendarProps> = ({todos, onSelectedMonthChange}) => {
 
   useEffect(() => {
     const newEvents = todos.map((todo) => {
+      const colorClass = setCalendarColorClass(todo);
       return {
         title: todo.title,
         start: todo.start_date,
         end: dayjs(todo.due_date).add(1, "day").format("YYYY-MM-DD"),
         todo: todo,
+        className: colorClass,
       };
     });
     setCalendarEvents(newEvents);
@@ -124,3 +127,17 @@ const Calendar: React.FC<CalendarProps> = ({todos, onSelectedMonthChange}) => {
 }
 
 export default Calendar;
+
+const setCalendarColorClass = (todo: Todo) => {
+  let colorClass = '';
+  if (todo.completed) {
+    colorClass = 'completed-todo';
+    return colorClass;
+  } 
+  if (todo.category === 'study') {
+    colorClass = 'study-todo';
+  } else if (todo.category === 'test') {
+    colorClass = 'test-todo';
+  }
+  return colorClass;
+}
