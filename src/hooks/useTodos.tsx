@@ -3,15 +3,21 @@ import apiClient from "../apiClient";
 import { Todo, searchTodoRequest } from "../models/Todo";
 import { CreateTodoRequest } from "../models/Todo";
 import { UpdateTodoRequest } from "../models/Todo";
-import { useUserInfo } from "../contexts/UserInfoContext";
+import { useAtom } from "jotai";
+import { userAtom, isUserInfoSetDoneAtom } from "../atomJotai";
 
 const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useUserInfo();
+  const user = useAtom(userAtom)[0];
+  const isUserInfoSetDone = useAtom(isUserInfoSetDoneAtom)[0];
+
 
   useEffect(() => {
+    if (!isUserInfoSetDone) {
+      return;
+    } 
     // get todos
     const fetchPosts = async () => {
       try {
@@ -27,7 +33,7 @@ const useTodos = () => {
     };
 
     fetchPosts();
-  }, []);
+  }, [isUserInfoSetDone, user]);
 
   // create todo
   const addTodo = async (request: CreateTodoRequest) => {
@@ -66,6 +72,10 @@ const useTodos = () => {
       const searchQuery = createSearchQuery(user?.id || 0, searchParams);
 
       const response = await apiClient.get<Todo[]>(searchQuery);
+      let testFlag = false;
+      if (response.data === todos) {
+        testFlag = true;
+      }
       setTodos(response.data);
     } catch (err: any) {
       setError(err.message);
@@ -94,6 +104,8 @@ const createSearchQuery = (user_id: number, searchParams: searchTodoRequest) : s
   for (const key in searchParams) {
     if (searchParams[key as keyof searchTodoRequest]) {
       searchQuery += `&${key}=${searchParams[key as keyof searchTodoRequest]}`;
+    } else {
+      searchQuery += `&${key}=''`;
     }
   }
   return searchQuery;

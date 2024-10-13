@@ -1,12 +1,11 @@
 import React, { useEffect } from "react";
 import useTodos from "../../hooks/useTodos";
 import { Link, To } from "react-router-dom";
-import { useUserInfo } from "../../contexts/UserInfoContext";
 import { useRecoilState } from "recoil";
 import "./Index.css";
 import Calendar from "../../components/Calendar/Calendar";
 //models
-import { Todo } from "../../models/Todo";
+import { Todo, searchTodoRequest } from "../../models/Todo";
 import { CreateTodoRequest } from "../../models/Todo";
 import { UpdateTodoRequest } from "../../models/Todo";
 //components
@@ -21,6 +20,9 @@ import {
   createdFromDialogAtom,
   checkedFromCardAtom
 } from "../../atom";
+//jotai
+import { userAtom } from "../../atomJotai";
+import { useAtom } from "jotai";
 //from material-ui
 import Button from '@mui/material/Button';
 import { styled } from "@mui/material";
@@ -68,8 +70,8 @@ function CustomTabPanel(props: TabPanelProps) {
 }
 
 export const Index = () => {
-  const { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodoForCalendar } = useTodos();
-  const { user } = useUserInfo();
+  const { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodoForCalendar, searchTodo } = useTodos();
+  const user = useAtom(userAtom)[0];
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [flashMessage, setFlashMessage] = React.useState<string | null>(null);
   const [openFlash, setOpenFlash] = React.useState(false);
@@ -78,14 +80,23 @@ export const Index = () => {
   const [tabValue, setTabValue] = React.useState(0);
   const [searchTodos, setSearchTodos] = React.useState<Todo[]>([]);
   const [calendarTodos, setCalendarTodos] = React.useState<Todo[]>([]);
+  const [userName, setUserName] = React.useState<string | null>(null);
 
   const updatedFromDialog = useRecoilState(updatedFromDialogAtom)[0];
   const createdFromDialog = useRecoilState(createdFromDialogAtom)[0];
   const checkedFromCard = useRecoilState(checkedFromCardAtom)[0];
 
   useEffect(() => {
-    setCalendarTodos(todos);
+    if(tabValue === 1) {
+      setSearchTodos(todos);
+    } else if(tabValue === 0) {
+      setCalendarTodos(todos);
+    }
   }, [todos]);
+
+  useEffect(() => {
+    if (user) setUserName(user.username)
+  }, [user]);
 
   useEffect(() => {
     if (updatedFromDialog) {
@@ -160,7 +171,7 @@ export const Index = () => {
     setOpenFlash(false);
   };
 
-  const handleToggleCompleted = (todo: Todo) => {
+  const handleToggleCompleted = async (todo: Todo) => {
     if (typeof todo.id === 'number') {
       const updateRequest: UpdateTodoRequest = {
         id: todo.id,
@@ -169,8 +180,7 @@ export const Index = () => {
         due_date: todo.due_date,
         completed: !todo.completed
       };
-      updateRequest.category_master_id = 1; // TODO: category_master_idを選択できるようにする
-      updateTodo(updateRequest);
+      await updateTodo(updateRequest);
     }
   }
 
@@ -190,8 +200,8 @@ export const Index = () => {
     return <p>Error: {error}</p>;
   }
 
-  const handleSearchResult = (todos: Todo[]) => {
-    setSearchTodos(todos);
+  const handleSearchResult = (searchRequest: searchTodoRequest) => {
+    searchTodo(searchRequest);
   }
 
   return (
@@ -213,7 +223,7 @@ export const Index = () => {
             style={{ backgroundColor: 'green', justifyContent: 'center' }}
           />
         </Snackbar>
-        <h2>Welcome, {user?.name} !!</h2>
+        <h2>Welcome, {userName} !!</h2>
         <div><Link to="/">Home</Link></div>
 
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -224,11 +234,11 @@ export const Index = () => {
         </Box>
         <CustomTabPanel value={tabValue} index={0}>
           <Grid container spacing={2}>
-            <Grid size={5}>
+            <Grid size={12}>
               <form onSubmit={handleDialogOpen}>
                 <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
               </form>
-              {dialogOpen && (
+              {(dialogOpen && tabValue === 0) && (
                 <div>
                   <CreateTodoDialog onClose={handleDialogClose} 
                     onCreate={handleCreateFromDialog} isUpdate={isUpdate}
@@ -238,7 +248,7 @@ export const Index = () => {
               )}
               <Calendar todos={calendarTodos} onSelectedMonthChange={handleSelectedMonthChange}/>
             </Grid>
-            <Grid size={7}>
+            {/* <Grid size={7}>
               <form onSubmit={handleDialogOpen}>
                 <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
               </form>
@@ -254,21 +264,33 @@ export const Index = () => {
               {todos.map((todo) => (
                 <div key={todo.id} className="todo-item-box">
                   <ShowTodo targetTodo={todo} 
-                  handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
-                  handleOnDelete={handleOnDelete}
-                  handleToggleCompleted={handleToggleCompleted} />
+                    handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
+                    handleOnDelete={handleOnDelete}
+                    handleToggleCompleted={handleToggleCompleted}
+                  />
                 </div>
               ))}
-            </Grid>
+            </Grid> */}
           </Grid>
         </CustomTabPanel>
         <CustomTabPanel value={tabValue} index={1}>
+          {(dialogOpen && tabValue === 1) && (
+            <div>
+              <CreateTodoDialog onClose={handleDialogClose} 
+                onCreate={handleCreateFromDialog} isUpdate={isUpdate}
+                existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
+                dialogOpen={dialogOpen}/>
+            </div>
+          )}
           <SearchPanel onSearch={handleSearchResult} />
           <br />
           {searchTodos.map((todo) => (
             <div key={todo.id} className="todo-item-box">
               <ShowTodo targetTodo={todo} 
-              handleToggleCompleted={handleToggleCompleted} />
+                handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
+                handleOnDelete={handleOnDelete}
+                handleToggleCompleted={handleToggleCompleted}
+              />
             </div>
           ))}
         </CustomTabPanel>

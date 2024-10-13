@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEffect } from 'react';
 import './searchPanel.css';
 import useTodos from '../../hooks/useTodos';
 import { searchTodoRequest } from '../../models/Todo';
@@ -10,8 +11,16 @@ import Radio from '@mui/joy/Radio';
 import RadioGroup from '@mui/joy/RadioGroup';
 import Button from '@mui/material/Button';
 
+import { useRecoilState } from 'recoil';
+import {
+  updatedFromDialogAtom,
+  checkedFromCardAtom,
+  createdFromDialogAtom
+} from '../../atom';
+
 interface SearchPanelProps {
-  onSearch: (todos: Todo[]) => void;
+  // onSearch: (todos: Todo[]) => void;
+  onSearch: (searchRequest: searchTodoRequest) => void;
 }
 
 const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch }) => {
@@ -19,19 +28,31 @@ const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch }) => {
   const [textSearchType, setTextSearchType] = React.useState('title');
   const { todos, loading, error, searchTodo } = useTodos();
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const searchRequest = createSearchRequest(searchText, textSearchType);
-    await searchTodo(searchRequest);
-    onSearch(todos);
+  const updatedFromDialog = useRecoilState(updatedFromDialogAtom)[0];
+  const createdFromDialog = useRecoilState(createdFromDialogAtom)[0];
+  const checkedFromCard = useRecoilState(checkedFromCardAtom)[0];
 
+  useEffect(() => {
+    if (updatedFromDialog || createdFromDialog || checkedFromCard) {
+      handleSearch(null);
+    }
+  }, [updatedFromDialog, createdFromDialog, checkedFromCard]);
+
+  const handleSearch = async (e: React.FormEvent | null) => {
+    if (e) {
+      e.preventDefault();
+    }
+    const searchRequest = createSearchRequest(searchText, textSearchType);
+    //await searchTodo(searchRequest);
+    //onSearch(todos);
+    onSearch(searchRequest);
   }
 
   const handleTextChange = () => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setSearchText(e.target.value);
   }
 
-  const handleSearchTypeChange = () => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTextSearchType(e.target.value);
   }
 

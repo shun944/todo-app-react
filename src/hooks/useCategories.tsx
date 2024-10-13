@@ -12,9 +12,7 @@ const useCategories = () => {
     const fetchCategories = async () => {
       try {
         const response = await apiClient.get<Category[]>("/category_masters");
-        console.log('category:',response.data);
         setCategories(response.data);
-        console.log('category2:',categories);
       } catch (err: any) {
         setError(err.message);
       } finally {

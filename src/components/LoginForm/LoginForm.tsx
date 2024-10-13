@@ -23,6 +23,7 @@ const LoginForm = () => {
   useEffect(() => {
     if (user?.token) {
       setUser(user);
+      localStorage.setItem('token', user.token);
       navigate('/test');// ログイン成功時に/testに遷移
     } else if (error) {
       setErrorMessages([error]);
