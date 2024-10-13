@@ -1,0 +1,19 @@
+.dialog-user {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-content-user {
+  background-color: rgb(255, 255, 255);
+  padding: 20px;
+  width:20%;
+  border-radius: 10px;
+}

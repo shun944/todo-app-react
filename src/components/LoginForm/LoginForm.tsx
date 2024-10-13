@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useAuthenticate from '../../hooks/useAuthenticate';
 import './LoginForm.css';
 import { useUserInfo } from '../../contexts/UserInfoContext';
+import CreateUserDialog from '../CreateUserDialog/CreateUserDialog';
 
 import { Button, Box } from '@mui/material';
 import Textarea from '@mui/joy/Textarea';
@@ -13,10 +14,11 @@ const LoginForm = () => {
   const [loginInfo, setLoginInfo] = useState({ username: '', password: '' });
   const [loginAttempted, setLoginAttempted] = useState(false);
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { user, error } = useAuthenticate(loginInfo, loginAttempted);
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
   const { user: userInfo, setUser } = useUserInfo();
 
 
@@ -69,9 +71,26 @@ const LoginForm = () => {
     } 
   };
 
+  const handleCreate = () => {
+    setDialogOpen(true);
+  }
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  }
+
 
   return (
     <div>
+      {dialogOpen && (
+        <div>
+          {/* <CreateTodoDialog onClose={handleDialogClose} 
+            onCreate={handleCreateFromDialog} isUpdate={isUpdate}
+            existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
+            dialogOpen={dialogOpen}/> */}
+            <CreateUserDialog onClose={handleDialogClose} />
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="username">Username:</label>
@@ -89,6 +108,9 @@ const LoginForm = () => {
         </div>
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
         <Button variant="contained" onClick={handleSubmit}>Login</Button>
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+        <Button variant="contained" onClick={handleCreate}>Resister User</Button>
       </Box>
     </div>
   );
