@@ -17,3 +17,7 @@
   width:20%;
   border-radius: 10px;
 }
+
+.error-message {
+  color: red;
+}

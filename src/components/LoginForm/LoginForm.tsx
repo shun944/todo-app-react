@@ -6,12 +6,13 @@ import { useUserInfo } from '../../contexts/UserInfoContext';
 import CreateUserDialog from '../CreateUserDialog/CreateUserDialog';
 
 import { Button, Box } from '@mui/material';
-import Textarea from '@mui/joy/Textarea';
+import TextField from '@mui/material/TextField';
+
 
 const LoginForm = () => {
-  const [username, setUsername] = useState('user_with_hashpass');
+  const [email, setUsername] = useState('testmail4@example.com');
   const [password, setPassword] = useState('');
-  const [loginInfo, setLoginInfo] = useState({ username: '', password: '' });
+  const [loginInfo, setLoginInfo] = useState({ email: '', password: '' });
   const [loginAttempted, setLoginAttempted] = useState(false);
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -38,8 +39,8 @@ const LoginForm = () => {
     
     //validation
     let errorMessages: string[] = [];
-    if (!username){
-      errorMessages.push('Username is required');
+    if (!email){
+      errorMessages.push('Email is required');
     }
     if(!password){
       errorMessages.push('Password is required');
@@ -50,12 +51,12 @@ const LoginForm = () => {
       return;
     }
 
-    setLoginInfo({ username, password });
+    setLoginInfo({ email, password });
     setLoginAttempted(true);
   };
 
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleEmailChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUsername(e.target.value);
 
     if (e.target.value) {
@@ -84,19 +85,18 @@ const LoginForm = () => {
     <div>
       {dialogOpen && (
         <div>
-          {/* <CreateTodoDialog onClose={handleDialogClose} 
-            onCreate={handleCreateFromDialog} isUpdate={isUpdate}
-            existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
-            dialogOpen={dialogOpen}/> */}
             <CreateUserDialog onClose={handleDialogClose} />
         </div>
       )}
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="username">Username:</label>
-          <Textarea id="username" value={username} onChange={handleUsernameChange}/>
-          <label htmlFor="password">Password:</label>
-          <Textarea id="password" value={password} onChange={handlePasswordChange}/>
+          <TextField id="email" label="Email" value={email} 
+            onChange={handleEmailChange} size="small"
+          />
+          <Box mt={2}></Box>
+          <TextField id="password" label="Password" type="password" value={password}
+            onChange={handlePasswordChange} size="small" 
+          />
         </div>
       </form>
       <div>
