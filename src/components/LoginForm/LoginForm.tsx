@@ -7,6 +7,8 @@ import CreateUserDialog from '../CreateUserDialog/CreateUserDialog';
 
 import { Button, Box } from '@mui/material';
 import TextField from '@mui/material/TextField';
+import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
+import SnackbarContent from '@mui/material/SnackbarContent';
 
 
 const LoginForm = () => {
@@ -16,6 +18,8 @@ const LoginForm = () => {
   const [loginAttempted, setLoginAttempted] = useState(false);
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [openFlash, setOpenFlash] = useState(false);
+  const [flashMessage, setFlashMessage] = useState('');
 
   const { user, error } = useAuthenticate(loginInfo, loginAttempted);
 
@@ -80,12 +84,42 @@ const LoginForm = () => {
     setDialogOpen(false);
   }
 
+  const handleOpenFlashChange = (open: boolean, message: string) => {
+    setOpenFlash(open);
+    setFlashMessage(message);
+  }
+
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: SnackbarCloseReason,
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpenFlash(false);
+  };
+
 
   return (
     <div>
+      <Snackbar
+          open={openFlash}
+          autoHideDuration={3000}
+          onClose={handleClose}
+          message={flashMessage}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <SnackbarContent
+            message={flashMessage}
+            style={{ backgroundColor: 'green', justifyContent: 'center' }}
+          />
+        </Snackbar>
       {dialogOpen && (
         <div>
-            <CreateUserDialog onClose={handleDialogClose} />
+            <CreateUserDialog onClose={handleDialogClose}
+              onOpenFlashChange={handleOpenFlashChange}
+            />
         </div>
       )}
       <form onSubmit={handleSubmit}>

@@ -1,16 +1,17 @@
 import React from "react";
 import { useEffect } from "react";
 import './CreateUserDialog.css';
+import useAuthenticate from "../../hooks/useAuthenticate";
 
 import { Button, Box } from '@mui/material';
 import TextField from '@mui/material/TextField';
 
-import useAuthenticate from "../../hooks/useAuthenticate";
 interface CreateUserDialogProps {
   onClose: () => void;
+  onOpenFlashChange: (open: boolean, message: string) => void;
 }
 
-const CreateUserDialog: React.FC<CreateUserDialogProps> = ({onClose}) => {
+const CreateUserDialog: React.FC<CreateUserDialogProps> = ({onClose, onOpenFlashChange}) => {
   const [username, setUsername] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -25,6 +26,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({onClose}) => {
 
   useEffect(() => {
     if (isUserCreated) {
+      onOpenFlashChange(true, 'User created successfully');
       onClose();
     }
   }, [isUserCreated]);
