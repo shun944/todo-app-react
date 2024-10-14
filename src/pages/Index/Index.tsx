@@ -21,7 +21,7 @@ import {
   checkedFromCardAtom
 } from "../../atom";
 //jotai
-import { userAtom } from "../../atomJotai";
+import { userAtom, isLoggedinAtom } from "../../atomJotai";
 import { useAtom } from "jotai";
 //from material-ui
 import Button from '@mui/material/Button';
@@ -72,6 +72,7 @@ function CustomTabPanel(props: TabPanelProps) {
 export const Index = () => {
   const { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodoForCalendar, searchTodo } = useTodos();
   const user = useAtom(userAtom)[0];
+  const [isLoggedin, setIsLoggedin] = useAtom(isLoggedinAtom);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [flashMessage, setFlashMessage] = React.useState<string | null>(null);
   const [openFlash, setOpenFlash] = React.useState(false);
@@ -87,6 +88,10 @@ export const Index = () => {
   const checkedFromCard = useRecoilState(checkedFromCardAtom)[0];
 
   useEffect(() => {
+    setIsLoggedin(true);
+  }, []);
+
+  useEffect(() => {
     if(tabValue === 1) {
       setSearchTodos(todos);
     } else if(tabValue === 0) {
@@ -95,7 +100,7 @@ export const Index = () => {
   }, [todos]);
 
   useEffect(() => {
-    if (user) setUserName(user.username)
+    if (user) setUserName(user.username);
   }, [user]);
 
   useEffect(() => {
@@ -224,7 +229,6 @@ export const Index = () => {
           />
         </Snackbar>
         <h2>Welcome, {userName} !!</h2>
-        <div><Link to="/">Home</Link></div>
 
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">

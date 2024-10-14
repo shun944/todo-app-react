@@ -29,14 +29,12 @@ function App() {
 
   return (
     <UserInfoProvider>
-      <Router>
-        <Header />
-        <Routes>
-          <Route path="/" element={<Top />} />
-          <Route path="/test" element={<Index />} />
-        </Routes>
-        <Footer />
-      </Router>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Top />} />
+        <Route path="/todos" element={<Index />} />
+      </Routes>
+      <Footer />
     </UserInfoProvider>
   );
 };

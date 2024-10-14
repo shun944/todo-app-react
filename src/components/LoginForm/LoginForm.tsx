@@ -10,7 +10,6 @@ import TextField from '@mui/material/TextField';
 import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
 import SnackbarContent from '@mui/material/SnackbarContent';
 
-
 const LoginForm = () => {
   const [email, setUsername] = useState('testmail4@example.com');
   const [password, setPassword] = useState('');
@@ -27,11 +26,12 @@ const LoginForm = () => {
   const { user: userInfo, setUser } = useUserInfo();
 
 
+
   useEffect(() => {
     if (user?.token) {
       setUser(user);
       localStorage.setItem('token', user.token);
-      navigate('/test');// ログイン成功時に/testに遷移
+      navigate('/todos');
     } else if (error) {
       setErrorMessages([error]);
     }
