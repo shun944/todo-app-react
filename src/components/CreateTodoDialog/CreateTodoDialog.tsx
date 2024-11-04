@@ -34,6 +34,7 @@ interface TodoErrors {
   description: boolean;
   start_date: boolean;
   due_date: boolean;
+  category: boolean;
 }
 
 interface Category {
@@ -42,9 +43,9 @@ interface Category {
 }
 
 const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, isUpdate, existingTodo, onUpdate, dialogOpen }) => {
-  const [todo, setTodo] = useState<CreateTodoRequest>({title: '', description: '', start_date: '', due_date: '', user_id: 0});
+  const [todo, setTodo] = useState<CreateTodoRequest>({title: '', description: '', start_date: '', due_date: '', user_id: 0, category_master_id: 0});
   const [updateTodo, setUpdateTodo] = useState<UpdateTodoRequest>({id: 0});
-  const [errors, setErrors] = useState<TodoErrors>({title: false, description: false, start_date: false, due_date: false});
+  const [errors, setErrors] = useState<TodoErrors>({title: false, description: false, start_date: false, due_date: false, category: false});
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [startDateValue, setStartDateValue] = useState<Dayjs | null>(null);
   const [dueDateValue, setDueDateValue] = useState<Dayjs | null>(null);
@@ -93,7 +94,7 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
     if (isUpdate) {
       setStartDateValue(dayjs(updateTodo.start_date));
       setDueDateValue(dayjs(updateTodo.due_date));
-      validationTodo(updateTodo);
+      validationTodo(updateTodo, false);
     } 
     else {
       setStartDateValue(dayjs(todo.start_date));
@@ -110,22 +111,22 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
           due_date: todo.due_date
         });
       }
-      validationTodo(todo);
+      validationTodo(todo, false);
     }
   }, [updateTodo.start_date, todo.start_date, updateTodo.due_date, todo.due_date]);
 
   useEffect(() => {
-    validationTodo(todo);
+    validationTodo(todo, false);
     if (isUpdate) {
-      validationTodo(updateTodo);
+      validationTodo(updateTodo, false);
     } else {
-      validationTodo(todo);
+      validationTodo(todo, false);
     }
   }, [updateTodo.title, todo.title, updateTodo.description, todo.description]);
   
   const handleCreate = () => {
     setEnableValidation(true);
-    const isValidTodo = validationTodo(todo);
+    const isValidTodo = validationTodo(todo, true);
     if (!isValidTodo) {
       return;
     }
@@ -136,7 +137,7 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
 
   const handleUpdate = () => {
     setEnableValidation(true);
-    const isValidTodo = validationTodo(updateTodo);
+    const isValidTodo = validationTodo(updateTodo, true);
     if (!isValidTodo) {
       return;
     }
@@ -220,11 +221,11 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
     }
   }
 
-  const validationTodo = (todo: CreateTodoRequest | UpdateTodoRequest): boolean => {
-    if (!enableValidation) {
+  const validationTodo = (todo: CreateTodoRequest | UpdateTodoRequest, isSubmited: boolean): boolean => {
+    if (!enableValidation && !isSubmited) {
       return true;
     }
-    let newErrors = {title: false, description: false, start_date: false, due_date: false};
+    let newErrors = {title: false, description: false, start_date: false, due_date: false, category: false};
     let newErrorMessages: string[] = [];
     if (!todo.title) {
       newErrors = {...newErrors, title: true};
@@ -242,10 +243,13 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
       newErrors = {...newErrors, due_date: true};
       newErrorMessages = [...newErrorMessages, 'Due date is required'];
     }
-
     if (dayjs(todo.start_date) > dayjs(todo.due_date)) {
       newErrors = {...newErrors, start_date: true, due_date: true};
       newErrorMessages = [...newErrorMessages, 'Start date must be before due date'];
+    }
+    if (todo.category_master_id === 0) {
+      newErrors = {...newErrors, category: true};
+      newErrorMessages = [...newErrorMessages, 'Category is required'];
     }
 
     setErrors(newErrors);
@@ -264,7 +268,10 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
         />
         <label htmlFor="description">description:</label>
         <Textarea id="description" value={updateTodo.description} onChange={handleDescriptionChange}
-          sx={errors.description ? { borderColor: 'red' } : {}}
+          sx={{
+            height: '150px',
+            ...(errors.description ? { borderColor: 'red' } : {})}
+          }
         />
         <Box mt={2}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -284,7 +291,7 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
             />
           </LocalizationProvider>
         </Box>
-        <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+        <FormControl error={errors.category} sx={{ m: 1, minWidth: 120 }} size="small">
           <InputLabel id="demo-select-small-label">Category</InputLabel>
           <Select
             labelId="demo-select-small-label"
@@ -293,9 +300,6 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
             label="Age"
             onChange={handleSelectChange}
           >
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
             {categoryOptions.map((category) => (
               <MenuItem key={category.id} value={category.id.toString()}>{category.name}</MenuItem>
             ))}
@@ -313,7 +317,6 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
             <p className="red" key={index}>{message}</p>)
           }
           <Box display="flex" justifyContent="flex-end">
-            {/* <button className='close-dialog' onClick={onClose}>Close</button> */}
             <Button variant="contained" onClick={onClose} color='inherit'>Close</Button>
           </Box>
         </div>

@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import useTodos from "../../hooks/useTodos";
-import { Link, To } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import "./Index.css";
 import Calendar from "../../components/Calendar/Calendar";
@@ -70,7 +69,7 @@ function CustomTabPanel(props: TabPanelProps) {
 }
 
 export const Index = () => {
-  const { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodoForCalendar, searchTodo } = useTodos();
+  const { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodoForCalendar, searchTodo, initializeTodos } = useTodos();
   const user = useAtom(userAtom)[0];
   const [isLoggedin, setIsLoggedin] = useAtom(isLoggedinAtom);
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -200,12 +199,23 @@ export const Index = () => {
     setTabValue(newValue);
   }
 
+  const handleInitialized = () => {
+    initializeTodos();
+  }
+
   if (loading) {
     return <p>Loading...</p>;
   }
 
   if (error) {
-    return <p>Error: {error}</p>;
+    return (
+      <div>
+        <p>Error: {error}</p>
+        <Box mb = {2} display="flex" justifyContent="center" sx={{ flexGrow: 1 }}>
+            <Button variant="contained" color="primary" onClick={handleInitialized}>Back to Todo</Button>
+        </Box>
+      </div>
+    );
   }
 
   const handleSearchResult = (searchRequest: searchTodoRequest) => {

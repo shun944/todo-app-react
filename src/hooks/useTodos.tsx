@@ -10,6 +10,7 @@ const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const user = useAtom(userAtom)[0];
   const isUserInfoSetDone = useAtom(isUserInfoSetDoneAtom)[0];
 
@@ -18,8 +19,14 @@ const useTodos = () => {
     if (!isUserInfoSetDone) {
       return;
     } 
+    if (isInitialized) {
+      setIsInitialized(false);
+    }
     // get todos
     const fetchPosts = async () => {
+      if (error) {
+        setError(null);
+      }
       try {
         const indexQuery = createIndexQuery(user?.id || 0);
         const response = await apiClient.get<Todo[]>(indexQuery);
@@ -33,7 +40,7 @@ const useTodos = () => {
     };
 
     fetchPosts();
-  }, [isUserInfoSetDone, user]);
+  }, [isUserInfoSetDone, user, isInitialized]);
 
   // create todo
   const addTodo = async (request: CreateTodoRequest) => {
@@ -93,7 +100,11 @@ const useTodos = () => {
     }
   }
 
-  return { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodo, searchTodoForCalendar };
+  const initializeTodos = () => {
+    setIsInitialized(true);
+  }
+
+  return { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodo, searchTodoForCalendar, initializeTodos };
 }
 
 // like private method
