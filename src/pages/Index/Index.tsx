@@ -83,9 +83,9 @@ export const Index = () => {
   const [calendarTodos, setCalendarTodos] = React.useState<Todo[]>([]);
   const [userName, setUserName] = React.useState<string | null>(null);
 
-  const updatedFromDialog = useRecoilState(updatedFromDialogAtom)[0];
-  const createdFromDialog = useRecoilState(createdFromDialogAtom)[0];
-  const checkedFromCard = useRecoilState(checkedFromCardAtom)[0];
+  const [updatedFromDialog, setUpdatedFromDialog] = useRecoilState(updatedFromDialogAtom);
+  const [createdFromDialog, setCreatedFromDialog] = useRecoilState(createdFromDialogAtom);
+  const [checkedFromCard, setCheckedFromCard] = useRecoilState(checkedFromCardAtom);
 
   useEffect(() => {
     setIsLoggedin(true);
@@ -107,14 +107,17 @@ export const Index = () => {
     if (updatedFromDialog) {
       setOpenFlash(true);
       setFlashMessage('Todo updated successfully');
+      setUpdatedFromDialog(false);
     }
     if (createdFromDialog) {
       setOpenFlash(true);
       setFlashMessage('Todo created successfully');
+      setCreatedFromDialog(false);
     }
     if (checkedFromCard) {
       setOpenFlash(true);
       setFlashMessage('Checked completed successfully');
+      setCheckedFromCard(false);
     }
   }, [updatedFromDialog, createdFromDialog, checkedFromCard]);
   
