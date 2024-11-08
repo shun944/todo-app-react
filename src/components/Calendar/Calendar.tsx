@@ -5,12 +5,12 @@ import { Todo } from "../../models/Todo";
 import "./Calendar.css";
 import { useContext, useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
-import { useRecoilValue } from "recoil";
-import { 
+import { useAtom } from "jotai";
+import {
   updatedFromDialogAtom,
   deletedFromCardAtom,
-  checkedFromCardAtom
-} from "../../atom";
+  checkedFromCardAtom,
+} from "../../atomJotai";
 //context
 import TodoContext from "../../contexts/TodoContext";
 
@@ -34,9 +34,9 @@ const Calendar: React.FC<CalendarProps> = ({todos, onSelectedMonthChange}) => {
   const calendarRef = useRef<FullCalendarApi | null>(null);
   const { dialogOpen } = useContext(TodoContext);
 
-  const updatedFromDialog = useRecoilValue(updatedFromDialogAtom);
-  const deletedFromCard = useRecoilValue(deletedFromCardAtom);
-  const checkedFromCard = useRecoilValue(checkedFromCardAtom);
+  const updatedFromDialog = useAtom(updatedFromDialogAtom)[0];
+  const deletedFromCard = useAtom(deletedFromCardAtom)[0];
+  const checkedFromCard = useAtom(checkedFromCardAtom)[0];
 
   const StyledDiv = styled('div')({
     width: '100%',

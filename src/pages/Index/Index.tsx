@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import useTodos from "../../hooks/useTodos";
-import { useRecoilState } from "recoil";
 import "./Index.css";
 import Calendar from "../../components/Calendar/Calendar";
 //models
@@ -13,15 +12,16 @@ import SearchPanel from "../../components/searchPanel/searchPanel";
 import ShowTodo from "../../components/ShowTodo/ShowTodo";
 //context
 import TodoContext from "../../contexts/TodoContext";
-//recoils
+//jotai
+import { useAtom } from "jotai";
 import { 
-  updatedFromDialogAtom, 
+  userAtom, 
+  isLoggedinAtom,
+  updatedFromDialogAtom,
   createdFromDialogAtom,
   checkedFromCardAtom
-} from "../../atom";
-//jotai
-import { userAtom, isLoggedinAtom } from "../../atomJotai";
-import { useAtom } from "jotai";
+} from "../../atomJotai";
+
 //from material-ui
 import Button from '@mui/material/Button';
 import { styled } from "@mui/material";
@@ -82,9 +82,9 @@ export const Index = () => {
   const [calendarTodos, setCalendarTodos] = React.useState<Todo[]>([]);
   const [userName, setUserName] = React.useState<string | null>(null);
 
-  const [updatedFromDialog, setUpdatedFromDialog] = useRecoilState(updatedFromDialogAtom);
-  const [createdFromDialog, setCreatedFromDialog] = useRecoilState(createdFromDialogAtom);
-  const [checkedFromCard, setCheckedFromCard] = useRecoilState(checkedFromCardAtom);
+  const [updatedFromDialog, setUpdatedFromDialog] = useAtom(updatedFromDialogAtom);
+  const [createdFromDialog, setCreatedFromDialog] = useAtom(createdFromDialogAtom);
+  const [checkedFromCard, setCheckedFromCard] = useAtom(checkedFromCardAtom);
 
   useEffect(() => {
     setIsLoggedin(true);
@@ -265,29 +265,6 @@ export const Index = () => {
               )}
               <Calendar todos={calendarTodos} onSelectedMonthChange={handleSelectedMonthChange}/>
             </Grid>
-            {/* <Grid size={7}>
-              <form onSubmit={handleDialogOpen}>
-                <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
-              </form>
-              {dialogOpen && (
-                <div>
-                  <CreateTodoDialog onClose={handleDialogClose} 
-                    onCreate={handleCreateFromDialog} isUpdate={isUpdate}
-                    existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
-                    dialogOpen={dialogOpen}/>
-                </div>
-              )}
-
-              {todos.map((todo) => (
-                <div key={todo.id} className="todo-item-box">
-                  <ShowTodo targetTodo={todo} 
-                    handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
-                    handleOnDelete={handleOnDelete}
-                    handleToggleCompleted={handleToggleCompleted}
-                  />
-                </div>
-              ))}
-            </Grid> */}
           </Grid>
         </CustomTabPanel>
         <CustomTabPanel value={tabValue} index={1}>

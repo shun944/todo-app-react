@@ -11,13 +11,12 @@ import Radio from '@mui/joy/Radio';
 import RadioGroup from '@mui/joy/RadioGroup';
 import Button from '@mui/material/Button';
 
-import { useRecoilState } from 'recoil';
-import {
-  updatedFromDialogAtom,
-  checkedFromCardAtom,
-  createdFromDialogAtom
-} from '../../atom';
-
+import { useAtom } from 'jotai';
+import { 
+  updatedFromDialogAtom, 
+  checkedFromCardAtom, 
+  createdFromDialogAtom 
+} from '../../atomJotai';
 interface SearchPanelProps {
   // onSearch: (todos: Todo[]) => void;
   onSearch: (searchRequest: searchTodoRequest) => void;
@@ -28,9 +27,9 @@ const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch }) => {
   const [textSearchType, setTextSearchType] = React.useState('title');
   const { todos, loading, error, searchTodo } = useTodos();
 
-  const updatedFromDialog = useRecoilState(updatedFromDialogAtom)[0];
-  const createdFromDialog = useRecoilState(createdFromDialogAtom)[0];
-  const checkedFromCard = useRecoilState(checkedFromCardAtom)[0];
+  const updatedFromDialog = useAtom(updatedFromDialogAtom)[0];
+  const createdFromDialog = useAtom(createdFromDialogAtom)[0];
+  const checkedFromCard = useAtom(checkedFromCardAtom)[0];
 
   useEffect(() => {
     if (updatedFromDialog || createdFromDialog || checkedFromCard) {

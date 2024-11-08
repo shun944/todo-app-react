@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { Todo } from "../../models/Todo";
 import { useState } from "react";
 import TodoContext from "../../contexts/TodoContext";
-import { useRecoilState } from 'recoil';
-import { deletedFromCardAtom, checkedFromCardAtom } from "../../atom";
+import { useAtom } from "jotai";
+import { deletedFromCardAtom, checkedFromCardAtom } from "../../atomJotai";
 
 import { Card, CardContent, Typography, CardActions,
   Button, Checkbox, FormControlLabel, CardHeader } from "@mui/material";
@@ -20,8 +20,8 @@ interface ShowTodoProps {
 
 const ShowTodo: React.FC<ShowTodoProps> = ({targetTodo, handleDialogOpenWithUpdate, handleOnDelete, handleToggleCompleted}) => {
   const [todo, setTodo] = useState<Todo>({title: '', description: '', start_date: '', due_date: '', completed: false, user_id: 0});
-  const [deletedFromCard, setDeletedFromCard] = useRecoilState(deletedFromCardAtom);
-  const [checkedFromCard, setCheckedFromCard] = useRecoilState(checkedFromCardAtom);
+  const [deletedFromCard, setDeletedFromCard] = useAtom(deletedFromCardAtom);
+  const [checkedFromCard, setCheckedFromCard] = useAtom(checkedFromCardAtom);
   const todoContext = React.useContext(TodoContext);
 
   useEffect(() => {

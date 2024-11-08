@@ -4,8 +4,8 @@ import { CreateTodoRequest } from '../../models/Todo';
 import { UpdateTodoRequest } from '../../models/Todo';
 import { Todo } from '../../models/Todo';
 import dayjs, { Dayjs } from 'dayjs';
-import { useRecoilState } from 'recoil';
-import { updatedFromDialogAtom, createdFromDialogAtom } from '../../atom';
+import { useAtom } from 'jotai';
+import { updatedFromDialogAtom, createdFromDialogAtom } from '../../atomJotai';
 import useCategories from '../../hooks/useCategories';
 
 import Textarea from '@mui/joy/Textarea';
@@ -51,22 +51,13 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
   const [dueDateValue, setDueDateValue] = useState<Dayjs | null>(null);
   const [enableValidation, setEnableValidation] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [updatedFromDialog, setUpdatedFromDialog] = useRecoilState(updatedFromDialogAtom);
-  const [createdFromDialog, setCreatedFromDialog] = useRecoilState(createdFromDialogAtom);
+  const [updatedFromDialog, setUpdatedFromDialog] = useAtom(updatedFromDialogAtom);
+  const [createdFromDialog, setCreatedFromDialog] = useAtom(createdFromDialogAtom);
 
   const { categories } = useCategories();
   const [categoryOptions, setCategoryOptions] = useState<Category[]>([]);
 
   let currentDate = dayjs().startOf('day');
-
-  useEffect(() => {
-    if (categories && categoryOptions.length === 0) {
-      categories.map((category) => {
-        setCategoryOptions(prevOptions => [...prevOptions, {id: category.id, name: category.category_name}]);
-      })
-    }
-    console.log('categoryOptions', categoryOptions);
-  }, [categories]);
 
   useEffect(() => {
     if (updatedFromDialog) {
@@ -76,6 +67,14 @@ const CreateTodoDialog: React.FC<CreateTodoDialogProps> = ({ onClose, onCreate, 
       setCreatedFromDialog(false);
     }
   });
+
+  useEffect(() => {
+    if (categories && categoryOptions.length === 0) {
+      categories.map((category) => {
+        setCategoryOptions(prevOptions => [...prevOptions, {id: category.id, name: category.category_name}]);
+      })
+    }
+  }, [categories]);
 
   useEffect(() => {
     if(isUpdate && existingTodo) {
