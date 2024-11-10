@@ -1,25 +1,124 @@
-import React from "react";
+import React, { useEffect } from "react";
 import useTodos from "../../hooks/useTodos";
-import { Link, To } from "react-router-dom";
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import { useUserInfo } from "../../contexts/UserInfoContext";
 import "./Index.css";
+import Calendar from "../../components/Calendar/Calendar";
 //models
-import { Todo } from "../../models/Todo";
+import { Todo, searchTodoRequest } from "../../models/Todo";
 import { CreateTodoRequest } from "../../models/Todo";
 import { UpdateTodoRequest } from "../../models/Todo";
 //components
 import CreateTodoDialog from "../../components/CreateTodoDialog/CreateTodoDialog";
 import SearchPanel from "../../components/searchPanel/searchPanel";
 import ShowTodo from "../../components/ShowTodo/ShowTodo";
+//context
+import TodoContext from "../../contexts/TodoContext";
+//jotai
+import { useAtom } from "jotai";
+import { 
+  userAtom, 
+  isLoggedinAtom,
+  updatedFromDialogAtom,
+  createdFromDialogAtom,
+  checkedFromCardAtom
+} from "../../atomJotai";
+
+//from material-ui
+import Button from '@mui/material/Button';
+import { styled } from "@mui/material";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
+import Grid from '@mui/material/Grid2';
+import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
+import SnackbarContent from '@mui/material/SnackbarContent';
+
+
+
+const StyledButton = styled(Button)({
+  marginBottom: '10px',
+});
+
+//a11y: accessibility, for adding aria-controls attribute to the tab panel
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
+}
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function CustomTabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 export const Index = () => {
-  const { todos, loading, error, addTodo, deleteTodo, updateTodo } = useTodos();
-  const { user } = useUserInfo();
+  const { todos, loading, error, addTodo, deleteTodo, updateTodo, searchTodoForCalendar, searchTodo, initializeTodos } = useTodos();
+  const user = useAtom(userAtom)[0];
+  const [isLoggedin, setIsLoggedin] = useAtom(isLoggedinAtom);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [flashMessage, setFlashMessage] = React.useState<string | null>(null);
+  const [openFlash, setOpenFlash] = React.useState(false);
   const [isUpdate, setIsUpdate] = React.useState(false);
   const [existingTodo, setExistingTodo] = React.useState<Todo | null>(null);
+  const [tabValue, setTabValue] = React.useState(0);
+  const [searchTodos, setSearchTodos] = React.useState<Todo[]>([]);
+  const [calendarTodos, setCalendarTodos] = React.useState<Todo[]>([]);
+  const [userName, setUserName] = React.useState<string | null>(null);
+
+  const [updatedFromDialog, setUpdatedFromDialog] = useAtom(updatedFromDialogAtom);
+  const [createdFromDialog, setCreatedFromDialog] = useAtom(createdFromDialogAtom);
+  const [checkedFromCard, setCheckedFromCard] = useAtom(checkedFromCardAtom);
+
+  useEffect(() => {
+    setIsLoggedin(true);
+  }, []);
+
+  useEffect(() => {
+    if(tabValue === 1) {
+      setSearchTodos(todos);
+    } else if(tabValue === 0) {
+      setCalendarTodos(todos);
+    }
+  }, [todos]);
+
+  useEffect(() => {
+    if (user) setUserName(user.username);
+  }, [user]);
+
+  useEffect(() => {
+    if (updatedFromDialog) {
+      setOpenFlash(true);
+      setFlashMessage('Todo updated successfully');
+      setUpdatedFromDialog(false);
+    }
+    if (createdFromDialog) {
+      setOpenFlash(true);
+      setFlashMessage('Todo created successfully');
+      setCreatedFromDialog(false);
+    }
+    if (checkedFromCard) {
+      setOpenFlash(true);
+      setFlashMessage('Checked completed successfully');
+      setCheckedFromCard(false);
+    }
+  }, [updatedFromDialog, createdFromDialog, checkedFromCard]);
   
   const handleDialogOpen = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +129,6 @@ export const Index = () => {
   }
 
   const handleDialogOpenWithUpdate = async (todo: Todo) => {
-    console.log('testtest',todo);
     setIsUpdate(true);
     setExistingTodo(todo);
     setDialogOpen(true);
@@ -40,7 +138,6 @@ export const Index = () => {
     if (user) {
       //set user_id for current user
       todoRequest.user_id = user.id;
-      todoRequest.category_master_id = 1; // TODO: category_master_idを選択できるようにする
       addTodo(todoRequest);
     } else {
       console.log("User not found");
@@ -49,7 +146,6 @@ export const Index = () => {
 
   const handleUpdateFromDialog = async (todoRequest: UpdateTodoRequest) => {
     //update
-    todoRequest.category_master_id = 1; // TODO: category_master_idを選択できるようにする
     updateTodo(todoRequest);
   }
 
@@ -61,9 +157,8 @@ export const Index = () => {
 
     deleteTodo(todo_id)
       .then(() => {
+        setOpenFlash(true);
         setFlashMessage('Todo deleted successfully');
-        setTimeout(() => setFlashMessage(null), 3000);
-        console.log(user?.id);
       })
       .catch((err) => console.error(err));
   }
@@ -72,7 +167,18 @@ export const Index = () => {
     setDialogOpen(false);
   }
 
-  const handleToggleCompleted = (todo: Todo) => {
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: SnackbarCloseReason,
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpenFlash(false);
+  };
+
+  const handleToggleCompleted = async (todo: Todo) => {
     if (typeof todo.id === 'number') {
       const updateRequest: UpdateTodoRequest = {
         id: todo.id,
@@ -81,9 +187,20 @@ export const Index = () => {
         due_date: todo.due_date,
         completed: !todo.completed
       };
-      updateRequest.category_master_id = 1; // TODO: category_master_idを選択できるようにする
-      updateTodo(updateRequest);
+      await updateTodo(updateRequest);
     }
+  }
+
+  const handleSelectedMonthChange = (date: string) => {
+    searchTodoForCalendar(date);
+  }
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  }
+
+  const handleInitialized = () => {
+    initializeTodos();
   }
 
   if (loading) {
@@ -91,28 +208,67 @@ export const Index = () => {
   }
 
   if (error) {
-    return <p>Error: {error}</p>;
+    return (
+      <div>
+        <p>Error: {error}</p>
+        <Box mb = {2} display="flex" justifyContent="center" sx={{ flexGrow: 1 }}>
+            <Button variant="contained" color="primary" onClick={handleInitialized}>Back to Todo</Button>
+        </Box>
+      </div>
+    );
+  }
+
+  const handleSearchResult = (searchRequest: searchTodoRequest) => {
+    searchTodo(searchRequest);
   }
 
   return (
-    <div>
-      {flashMessage && <div className="flash-message">{flashMessage}</div>}
-      <h1>Index page</h1>
-      <h2>Welcome, {user?.name} !!</h2>
-      <li><Link to="/">Home</Link></li>
+    <TodoContext.Provider value={{
+      isUpdate, setIsUpdate, existingTodo, setExistingTodo,
+      dialogOpen, setDialogOpen, handleDialogOpenWithUpdate,
+      handleOnDelete, handleToggleCompleted,
+    }}>
+      <div>
+        <Snackbar
+          open={openFlash}
+          autoHideDuration={3000}
+          onClose={handleClose}
+          message={flashMessage}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <SnackbarContent
+            message={flashMessage}
+            style={{ backgroundColor: 'green', justifyContent: 'center' }}
+          />
+        </Snackbar>
+        <h2>Welcome, {userName} !!</h2>
 
-      <Tabs>
-        <TabList>
-          <Tab>Recent Todo</Tab>
-          <Tab>Search Todo</Tab>
-        </TabList>
-      
-
-        <TabPanel>
-          <form onSubmit={handleDialogOpen}>
-            <button type="submit" className="create-todo-button">Create Todo</button>
-          </form>
-          {dialogOpen && (
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
+            <Tab label="Recent Todo" {...a11yProps(0)} sx={{ backgroundColor: tabValue === 0 ? 'lightgray' : 'transparent' }}/>
+            <Tab label="Search Todo" {...a11yProps(1)} sx={{ backgroundColor: tabValue === 1 ? 'lightgray' : 'transparent' }}/>
+          </Tabs>
+        </Box>
+        <CustomTabPanel value={tabValue} index={0}>
+          <Grid container spacing={2}>
+            <Grid size={12}>
+              <form onSubmit={handleDialogOpen}>
+                <StyledButton type="submit" className="create-todo-button" variant="contained">Create Todo</StyledButton>
+              </form>
+              {(dialogOpen && tabValue === 0) && (
+                <div>
+                  <CreateTodoDialog onClose={handleDialogClose} 
+                    onCreate={handleCreateFromDialog} isUpdate={isUpdate}
+                    existingTodo={existingTodo} onUpdate={handleUpdateFromDialog}
+                    dialogOpen={dialogOpen}/>
+                </div>
+              )}
+              <Calendar todos={calendarTodos} onSelectedMonthChange={handleSelectedMonthChange}/>
+            </Grid>
+          </Grid>
+        </CustomTabPanel>
+        <CustomTabPanel value={tabValue} index={1}>
+          {(dialogOpen && tabValue === 1) && (
             <div>
               <CreateTodoDialog onClose={handleDialogClose} 
                 onCreate={handleCreateFromDialog} isUpdate={isUpdate}
@@ -120,21 +276,19 @@ export const Index = () => {
                 dialogOpen={dialogOpen}/>
             </div>
           )}
-
-          {todos.map((todo) => (
-              
+          <SearchPanel onSearch={handleSearchResult} />
+          <br />
+          {searchTodos.map((todo) => (
             <div key={todo.id} className="todo-item-box">
               <ShowTodo targetTodo={todo} 
-              handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
-              handleOnDelete={handleOnDelete}
-              handleToggleCompleted={handleToggleCompleted} />
+                handleDialogOpenWithUpdate={handleDialogOpenWithUpdate}
+                handleOnDelete={handleOnDelete}
+                handleToggleCompleted={handleToggleCompleted}
+              />
             </div>
           ))}
-        </TabPanel>
-        <TabPanel>
-          <SearchPanel />
-        </TabPanel>
-      </Tabs>
-    </div>
+        </CustomTabPanel>
+      </div>
+    </TodoContext.Provider>
   );
 };

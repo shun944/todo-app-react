@@ -14,22 +14,22 @@ form {
 }
 
 .create-todo-button {
-  margin: auto;
+  /* margin: auto;
   padding: 10px 20px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 16px; */
   margin-bottom: 30px;
 }
 
 .todo-item-box {
   display: flex;
   flex-direction: column;
-  height: 100px;
-  width: 40%;
+  /* height: 100px; */
+  width: 60%;
   /* margin-left: 5%; */
   margin: auto;
   margin-bottom: 20px;
