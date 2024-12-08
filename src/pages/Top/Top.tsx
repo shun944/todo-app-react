@@ -1,12 +1,11 @@
 import React from "react";
-//import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import LoginForm from "../../components/LoginForm/LoginForm";
 import { useNavigate } from "react-router-dom";
 
 import Box from "@mui/material/Box";
 import { useEffect } from "react";
 
-export const Top= () => {
+export const Top = () => {
   const navigate = useNavigate();
 
   useEffect(() => {

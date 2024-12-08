@@ -5,7 +5,7 @@ import './LoginForm.css';
 import { useUserInfo } from '../../contexts/UserInfoContext';
 import CreateUserDialog from '../CreateUserDialog/CreateUserDialog';
 
-import { Button, Box } from '@mui/material';
+import { Button, Box, Link } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
 import SnackbarContent from '@mui/material/SnackbarContent';
@@ -146,6 +146,10 @@ const LoginForm = () => {
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
         <Button variant="contained" onClick={handleCreate}>Resister User</Button>
       </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+        <Link href="/reset-password" variant='body2'>Forgot password?</Link>
+      </Box>
+      
     </div>
   );
 };
