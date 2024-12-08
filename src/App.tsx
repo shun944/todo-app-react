@@ -1,19 +1,20 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-
-import { Top } from './pages/Top/Top';
-import { Index } from './pages/Index/Index';
+import React, { useEffect, useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 
 import useAuthenticate from './hooks/useAuthenticate';
 
 import './App.css';
-import { UserInfoProvider } from './contexts/UserInfoContext';
-
+import { useLocation } from 'react-router-dom';
+import { Alert } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
 
 function App() {
-  const { user, reAuthenticate } = useAuthenticate();
+  const { reAuthenticate } = useAuthenticate();
+  const location = useLocation();
+  const state = location.state as { message: string };
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -27,15 +28,23 @@ function App() {
     
   }, []);
 
+  useEffect(() => {
+    if (state?.message) {
+      setMessage(state.message);
+    }
+  }, [state])
+
   return (
-    <UserInfoProvider>
+    <>
       <Header />
-      <Routes>
-        <Route path="/" element={<Top />} />
-        <Route path="/todos" element={<Index />} />
-      </Routes>
+      {message && (
+        <Alert icon={<CheckIcon fontSize='inherit' />} severity='success'>
+          {message}
+        </Alert>
+      )}
+      <Outlet />
       <Footer />
-    </UserInfoProvider>
+    </>
   );
 };
 
