@@ -15,7 +15,6 @@ const schema = yup.object().shape({
   passwordConfirm: yup.string().oneOf([yup.ref('password'), undefined], 'Passwords must match')
 })
 
-// const PassowrdResetForm = () => {
 const PassowrdResetForm: React.FC<PasswordResetFormProps> = ({ token }) => {
   const navigate = useNavigate();
   const { updatePassword } = useReset();
