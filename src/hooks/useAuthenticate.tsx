@@ -16,16 +16,10 @@ interface RegisterInfo {
   passwordConfirm: string;
 }
 
-interface ErrorMessage {
-  columnName: string;
-  message: string;
-}
-
 const useAuthenticate = (loginInfo?: LoginInfo, loginAttempted?: boolean) => {
   const [user, setUser] = useAtom(userAtom);
   const [isUserInfoSetDone, setIsUserInfoSetDone] = useAtom(isUserInfoSetDoneAtom);
   const [error, setError] = useState<string | null>(null);
-  const [registerErrorMessages, setRegisterErrorMessages] = useState<ErrorMessage[]>([]);
   const [isUserCreated, setIsUserCreated] = useState<boolean>(false);
 
   useEffect(() => {
@@ -55,41 +49,7 @@ const useAuthenticate = (loginInfo?: LoginInfo, loginAttempted?: boolean) => {
     }
   }, [user]);
 
-  const validateResisterInfo = (registerInfo: RegisterInfo) => {
-    setRegisterErrorMessages([]);
-    const errorMessages: ErrorMessage[] = [];
-
-    // username
-    if (!registerInfo.username) {
-      errorMessages.push({ columnName: 'username', message: 'Username is required' });
-    }
-    //email
-    if (!registerInfo.email) {
-      errorMessages.push({ columnName: 'email', message: 'Email is required' });
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(registerInfo.email)) {
-        errorMessages.push({ columnName: 'email', message: 'Email format is invalid' });
-      }
-    }
-    //password
-    if (!registerInfo.password) {
-      errorMessages.push({ columnName: 'password', message: 'Password is required' });
-    } else if (registerInfo.password.length < 6) {
-      errorMessages.push({ columnName: 'password', message: 'Password must be at least 6 characters' });
-    }
-    if (registerInfo.password && (registerInfo.password !== registerInfo.passwordConfirm)) {
-      errorMessages.push({ columnName: 'password', message: 'Password and Confirm Password do not match' });
-      errorMessages.push({ columnName: 'passwordConfirm', message: '' });
-    }
-
-    setRegisterErrorMessages(errorMessages);
-
-    return errorMessages.length;
-  }
-
-  const reAuthenticate = async (token: String) => {
-    
+  const reAuthenticate = async (token: String) => { 
     try {
       const response = await apiClient.get<User>("/user", {
         headers: {
@@ -110,10 +70,7 @@ const useAuthenticate = (loginInfo?: LoginInfo, loginAttempted?: boolean) => {
   const registerUser = async (request: RegisterInfo) => {
     try {
       setIsUserCreated(false);
-      const errorNum = validateResisterInfo(request);
-      if (errorNum > 0) {
-        return;
-      }
+      
       const response = await apiClient.post<User>("/users", request);
       setUser(response.data);
       setIsUserCreated(true);
@@ -122,7 +79,7 @@ const useAuthenticate = (loginInfo?: LoginInfo, loginAttempted?: boolean) => {
     }
   }
 
-  return { user, error, registerErrorMessages, isUserCreated, reAuthenticate, registerUser, validateResisterInfo};
+  return { user, error, isUserCreated, reAuthenticate, registerUser};
 }
 
 export default useAuthenticate;
