@@ -35,7 +35,10 @@ const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch }) => {
   }, [updatedFromDialog, createdFromDialog, checkedFromCard]);
 
   const onSubmit = (data: any) => {
-    const searchRequest = createSearchRequest(data.searchText, data.searchType);
+    let searchRequest: searchTodoRequest = {};
+    if (data !== null) {
+      searchRequest = createSearchRequest(data.searchText, data.searchType);
+    }
     onSearch(searchRequest);
   }
 
