@@ -1,15 +1,14 @@
 import React from 'react';
 import { useEffect } from 'react';
 import './searchPanel.css';
-import useTodos from '../../hooks/useTodos';
 import { searchTodoRequest } from '../../models/Todo';
-import { Todo } from '../../models/Todo';
 
-import Textarea from '@mui/joy/Textarea';
+import { TextField, Box, FormControlLabel } from '@mui/material';
 import FormControl from '@mui/joy/FormControl';
 import Radio from '@mui/joy/Radio';
 import RadioGroup from '@mui/joy/RadioGroup';
 import Button from '@mui/material/Button';
+import { Controller, useForm } from 'react-hook-form';
 
 import { useAtom } from 'jotai';
 import { 
@@ -18,64 +17,63 @@ import {
   createdFromDialogAtom 
 } from '../../atomJotai';
 interface SearchPanelProps {
-  // onSearch: (todos: Todo[]) => void;
   onSearch: (searchRequest: searchTodoRequest) => void;
 }
 
-const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch }) => {
-  const [searchText, setSearchText] = React.useState('');
-  const [textSearchType, setTextSearchType] = React.useState('title');
-  const { todos, loading, error, searchTodo } = useTodos();
 
+const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch }) => {
   const updatedFromDialog = useAtom(updatedFromDialogAtom)[0];
   const createdFromDialog = useAtom(createdFromDialogAtom)[0];
   const checkedFromCard = useAtom(checkedFromCardAtom)[0];
 
+  const { control, handleSubmit, formState: { errors } } = useForm();
+
   useEffect(() => {
     if (updatedFromDialog || createdFromDialog || checkedFromCard) {
-      handleSearch(null);
+      onSubmit(null);
     }
   }, [updatedFromDialog, createdFromDialog, checkedFromCard]);
 
-  const handleSearch = async (e: React.FormEvent | null) => {
-    if (e) {
-      e.preventDefault();
+  const onSubmit = (data: any) => {
+    let searchRequest: searchTodoRequest = {};
+    if (data !== null) {
+      searchRequest = createSearchRequest(data.searchText, data.searchType);
     }
-    const searchRequest = createSearchRequest(searchText, textSearchType);
-    //await searchTodo(searchRequest);
-    //onSearch(todos);
     onSearch(searchRequest);
-  }
-
-  const handleTextChange = () => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSearchText(e.target.value);
-  }
-
-  const handleSearchTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTextSearchType(e.target.value);
   }
 
   return (
     <div className="search-panel">
-      <form onSubmit={handleSearch}>
-        <div className="text-search-area">
-          <div>
-            <Textarea id="password" placeholder='Search...' onChange={handleTextChange()}/>
-          </div>
-          <FormControl>
-            <RadioGroup component="div" defaultValue="title" name="radio-buttons-group"
-              orientation="horizontal"
-              sx={{ gap: 1 }}
-            >
-              <Radio value="title" label="Title" variant="outlined" onChange={handleSearchTypeChange} />
-              <Radio value="description" label="Description" variant="outlined" onChange={handleSearchTypeChange} />
-            </RadioGroup>
-          </FormControl>
-        </div>
-        <br />
-        {/* <button className="search-submit" type="submit">Search</button> */}
-        <Button type="submit" variant="contained">Search</Button>
-      </form>
+      <div className="text-search-area">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+            <Controller name="searchText" control={control} 
+              defaultValue="" render={({ field }) => (
+                <TextField {...field} id="searchText" label="Search"
+                  type="searchText" size="small" error={!!errors.searchText}
+                />
+              )}
+            />
+            <Controller name="searchType" control={control}
+              defaultValue="title" render={({ field }) => (
+                <FormControl >
+                  <RadioGroup {...field} component="div" defaultValue={field.value} name="radio-buttons-group"
+                    orientation="horizontal"
+                    sx={{ gap: 1, ml: 2 }}
+                  >
+                    {/* <Radio value="title" label="Title" variant="outlined" />
+                    <Radio value="description" label="Description" variant="outlined" /> */}
+                    <FormControlLabel value="title" control={<Radio />} label="Title" sx={{gap: 1}} />
+                    <FormControlLabel value="description" control={<Radio />} label="Description" sx={{gap: 1}} />
+                  </RadioGroup>
+                </FormControl>
+              )}
+            />
+            <Button type="submit" variant="contained">Search</Button>
+          </Box>
+        </form>
+      </div>
+      <br />
     </div>
   );
 };

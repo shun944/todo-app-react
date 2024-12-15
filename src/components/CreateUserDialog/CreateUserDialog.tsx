@@ -5,24 +5,34 @@ import useAuthenticate from "../../hooks/useAuthenticate";
 
 import { Button, Box } from '@mui/material';
 import TextField from '@mui/material/TextField';
+import { Controller, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 interface CreateUserDialogProps {
   onClose: () => void;
   onOpenFlashChange: (open: boolean, message: string) => void;
 }
 
+interface formValues {
+  username: string;
+  email: string;
+  password: string;
+  passwordConfirm: string;
+}
+
+const schema = yup.object().shape({
+  username: yup.string().required('Username is required'),
+  email: yup.string().email('Invalid email').required('Email is required'),
+  password: yup.string().required('Password is required').min(6, "Password must be at least 6 characters"),
+  passwordConfirm: yup.string().required('Password Confirmation is required').oneOf([yup.ref('password')], 'Passwords must match')
+})
+
 const CreateUserDialog: React.FC<CreateUserDialogProps> = ({onClose, onOpenFlashChange}) => {
-  const [username, setUsername] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [passwordConfirm, setPasswordConfirm] = React.useState('');
-  const [errorColumns, setErrorColumns] = React.useState<string[]>([]);
-
-  const { user, error, registerErrorMessages, isUserCreated, registerUser, validateResisterInfo } = useAuthenticate();
-
-  useEffect(() => {
-    setErrorColumns(registerErrorMessages.map((message) => message.columnName));
-  }, [registerErrorMessages]);
+  const { user, error, isUserCreated, registerUser } = useAuthenticate();
+  const { control, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(schema),
+  });
 
   useEffect(() => {
     if (isUserCreated) {
@@ -31,70 +41,61 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({onClose, onOpenFlash
     }
   }, [isUserCreated]);
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setUsername(e.target.value);
-    if (errorColumns.includes('username')) {
-      validateResisterInfo({username: e.target.value, email, password, passwordConfirm});
-    }
-  }
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-    if (errorColumns.includes('email')) {
-      validateResisterInfo({username, email: e.target.value, password, passwordConfirm});
-    }
-  }
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-    if (errorColumns.includes('password')) {
-      validateResisterInfo({username, email, password: e.target.value, passwordConfirm});
-    }
-  }
-
-  const handlePasswordConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPasswordConfirm(e.target.value);
-    if (errorColumns.includes('passwordConfirm')) {
-      validateResisterInfo({username, email, password, passwordConfirm: e.target.value});
-    }
-  }
-
-  const onCreate = () => {
-    registerUser({username, email, password, passwordConfirm});
+  const onSubmit = (data: formValues) => {
+    registerUser({
+      username: data.username,
+      email: data.email,
+      password: data.password,
+      passwordConfirm: data.passwordConfirm
+    });
   }
 
   return (
     <div className="dialog-user">
       <div className="dialog-content-user">
-        <TextField id="username" label="Username" value={username} 
-          onChange={handleUsernameChange} size="small"
-          error={errorColumns.includes('username')}
-        />
-        <Box mt={1}></Box>
-        <TextField id="email" label="Email" value={email}
-          onChange={handleEmailChange} size="small"
-          error={errorColumns.includes('email')}
-        />
-        <Box mt={2}></Box>
-        <TextField id="password" label="Password" type="password" value={password}
-          onChange={handlePasswordChange} size="small"
-          error={errorColumns.includes('password')}  
-        />
-        <Box mt={1}></Box>
-        <TextField id="password-confirm" label="Password confirmation" type="password" value={passwordConfirm}
-          onChange={handlePasswordConfirmChange} size="small"
-          error={errorColumns.includes('passwordConfirm')}
-        />
-        {registerErrorMessages && registerErrorMessages.map((message, index) => (
-          <div className="error-message" key={index}>{message.message}</div>
-        ))}
-        <Box mt={4}></Box>
-        <Box display="flex" justifyContent="flex-end">
-          <Box display="flex" justifyContent="space-between" width="100%">
-            <Button variant="contained" onClick={onCreate}>Submit</Button>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+            <Controller name="username" control={control} 
+              defaultValue="" render={({ field }) => (
+                <TextField {...field} id="username" label="Username"
+                  type="username" size="small" error={!!errors.username}
+                  helperText={errors.username ? errors.username.message : ''}
+                />
+              )}
+            />
+            <Controller name="email" control={control} 
+              defaultValue="" render={({ field }) => (
+                <TextField {...field} id="email" label="Email"
+                  type="email" size="small" error={!!errors.email}
+                  helperText={errors.email ? errors.email.message : ''}
+                />
+              )}
+            />
+            <Controller name="password" control={control} 
+              defaultValue="" render={({ field }) => (
+                <TextField {...field} id="password" label="Password"
+                  type="password" size="small" error={!!errors.password}
+                  helperText={errors.password ? errors.password.message : ''}
+                />
+              )}
+            />
+            <Controller name="passwordConfirm" control={control} 
+              defaultValue="" render={({ field }) => (
+                <TextField {...field} id="password-confirm" label="Password confirmation"
+                  type="password" size="small" error={!!errors.passwordConfirm}
+                  helperText={errors.passwordConfirm ? errors.passwordConfirm.message : ''}
+                />
+              )}
+            />
+            <Box mt={2}></Box>
+            <Box display="flex" justifyContent="flex-end">
+              <Box display="flex" justifyContent="space-between" width="100%">
+                <Button type="submit" variant="contained" color="primary">Submit</Button>
+              </Box>
+                <Button variant="contained" onClick={onClose} color='inherit'>Close</Button>
+            </Box>
           </Box>
-          <Button variant="contained" onClick={onClose} color='inherit'>Close</Button>
-        </Box>
+        </form>
       </div>
     </div>
   );
